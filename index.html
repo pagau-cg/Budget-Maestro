@@ -11,48 +11,64 @@
 --amber:#7A5C00;--amber-lt:#FFF8E1;--red:#A4262C;--red-lt:#FDE7E9;
 --g1:#F3F2F1;--g2:#EDEBE9;--g3:#C8C6C4;--g4:#8A8886;--g5:#605E5C;--g6:#323130;--white:#fff;
 --font:'Segoe UI',system-ui,sans-serif;--mono:'Cascadia Code','Courier New',monospace}
-body{font-family:var(--font);font-size:14px;color:var(--g6);background:var(--g1);min-height:100vh;padding:0 0 40px}
+body{font-family:var(--font);font-size:14px;color:var(--g6);background:var(--g1);min-height:100vh;padding:0 0 50px}
 .hdr{background:var(--blue);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
 .hdr h1{font-size:17px;font-weight:700}
 .hdr .sub{font-size:12px;opacity:.85;margin-top:2px}
-.wrap{max-width:920px;margin:22px auto;padding:0 18px;display:flex;flex-direction:column;gap:16px}
+.wrap{max-width:1080px;margin:22px auto;padding:0 18px;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--white);border:1px solid var(--g3);border-radius:6px;padding:18px 20px}
 .card h2{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .step{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
 label{font-size:12px;font-weight:600;color:var(--g5);display:block;margin-bottom:5px}
 input[type=text]{border:1px solid var(--g3);border-radius:4px;padding:8px 11px;font-size:14px;font-family:var(--font);width:240px;outline:none}
-input[type=text]:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
-.drop{border:2px dashed var(--g3);border-radius:6px;padding:26px;text-align:center;cursor:pointer;transition:all .15s;background:var(--g1)}
+input[type=text]:focus,input[type=number]:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+.drop{border:2px dashed var(--g3);border-radius:6px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--g1)}
 .drop:hover,.drop.over{border-color:var(--blue);background:var(--blue-lt)}
-.drop .ic{font-size:30px;margin-bottom:6px}
+.drop .ic{font-size:28px;margin-bottom:6px}
 .drop .fn{font-size:13px;color:var(--blue);font-weight:600;margin-top:6px}
 .tip{font-size:11px;color:var(--g4);margin-top:8px;line-height:1.6}
 .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:5px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)}
 .btn:hover{background:#106EBE}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-.btn.sec{background:var(--white);color:var(--blue)}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.sc{background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:5px;padding:12px 14px}
-.sc .l{font-size:10px;color:var(--g5);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.sc .v{font-size:20px;font-weight:700;color:var(--blue);margin-top:2px}
+.btn.sec{background:var(--white);color:var(--g5);border-color:var(--g3)}
+.btn.sec:hover{background:var(--g1)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+.sc{background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:5px;padding:10px 12px}
+.sc .l{font-size:10px;color:var(--g5);text-transform:uppercase;letter-spacing:.03em;font-weight:600}
+.sc .v{font-size:17px;font-weight:700;color:var(--blue);margin-top:2px}
+.sc.ecart .v{color:var(--amber)}
+.grpbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;font-size:11px}
+.grpchip{background:var(--g1);border:1px solid var(--g3);border-radius:99px;padding:3px 10px;color:var(--g5)}
+.grpchip b{color:var(--g6)}
+.toolsrow{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.toolsrow input[type=text]{width:220px;padding:6px 9px;font-size:13px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:var(--g1);text-align:left;padding:6px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--g4);border-bottom:2px solid var(--g3)}
-td{padding:5px 9px;border-bottom:1px solid var(--g2)}
-td.num{text-align:right;font-variant-numeric:tabular-nums}
-code{font-family:var(--mono);font-size:12px}
+th{position:sticky;top:0;background:var(--g6);color:#fff;text-align:left;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.03em;z-index:2}
+th.r{text-align:right}
+td{padding:4px 9px;border-bottom:1px solid var(--g2);vertical-align:middle}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.edited td{background:var(--amber-lt)}
+.tblwrap{max-height:460px;overflow:auto;border:1px solid var(--g3);border-radius:5px}
+.cell-in{width:100px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
+.cell-h{width:64px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px}
+.cell-u{width:54px;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;text-transform:uppercase}
 .badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:600;background:var(--g2);color:var(--g5)}
+.delta-pos{color:var(--teal)}.delta-neg{color:var(--red)}
 .msg{padding:10px 14px;border-radius:5px;font-size:13px;margin-top:10px}
 .msg.err{background:var(--red-lt);color:var(--red)}
 .msg.ok{background:var(--teal-lt);color:var(--teal)}
 .legend{font-size:11px;color:var(--g5);line-height:1.8;margin-top:10px}
+.rule{background:var(--amber-lt);border:1px solid #E8D08A;border-radius:5px;padding:10px 14px;font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:12px}
 .hidden{display:none}
-.rule{background:var(--amber-lt);border:1px solid #E8D08A;border-radius:5px;padding:10px 14px;font-size:12px;color:var(--amber);line-height:1.6}
+.del{background:none;border:none;color:var(--g4);cursor:pointer;font-size:15px;line-height:1}
+.del:hover{color:var(--red)}
+tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
 </style>
 </head>
 <body>
 <header class="hdr">
   <svg width="22" height="22" viewBox="0 0 20 20" fill="none"><rect x="2" y="2" width="7" height="7" rx="1" fill="#fff" opacity=".9"/><rect x="11" y="2" width="7" height="7" rx="1" fill="#fff" opacity=".6"/><rect x="2" y="11" width="7" height="7" rx="1" fill="#fff" opacity=".6"/><rect x="11" y="11" width="7" height="7" rx="1" fill="#fff" opacity=".35"/></svg>
-  <div><h1>Estimation classe A → Gabarit budget Maestro</h1><div class="sub">Construction Gauthier · transforme l'export CSV de l'Estimateur Général en gabarit d'importation Maestro</div></div>
+  <div><h1>Estimation classe A → Gabarit budget Maestro</h1><div class="sub">Construction Gauthier · générer, réviser/rebalancer le budget, puis exporter pour Maestro</div></div>
 </header>
 
 <div class="wrap">
@@ -63,61 +79,68 @@ code{font-family:var(--mono);font-size:12px}
   </div>
 
   <div class="card">
-    <h2><span class="step">2</span> Export CSV de l'estimation</h2>
+    <h2><span class="step">2</span> Export CSV détaillé de l'estimation</h2>
     <div class="drop" id="drop">
       <div class="ic">📄</div>
       <div>Glissez le fichier <strong>Sections.csv</strong> ici, ou cliquez pour le choisir</div>
       <div class="fn" id="fname"></div>
       <input id="file" type="file" accept=".csv" class="hidden"/>
     </div>
-    <p class="tip">Export « Sections » de l'Estimateur Général (séparateur point-virgule). Le fichier reste sur votre poste — aucun envoi sur Internet.</p>
+    <p class="tip">Export « CSV détaillé » de l'Estimateur Général (clic droit dans le tableau des sections). Le fichier reste sur votre poste — aucun envoi sur Internet.</p>
   </div>
 
   <div class="card">
-    <h2><span class="step">3</span> Générer le gabarit</h2>
-    <button class="btn" id="go" disabled>⚙ Générer le gabarit Maestro</button>
+    <h2><span class="step">3</span> Générer</h2>
+    <button class="btn" id="go" disabled>⚙ Générer le budget</button>
     <div id="message"></div>
     <div class="legend">
-      <strong>Règles appliquées :</strong> une ligne par activité × groupe de budget ·
-      pose → <span class="badge">L Salaire</span> (avec heures, unité HRE) ·
-      achat → <span class="badge">M Matériaux</span> ·
-      équip. → <span class="badge">E Équipement</span> ·
-      sous-traitant → <span class="badge">S Sous-traitants</span> ·
-      divers → <span class="badge">D Divers</span> · unité des lignes non-salaire : GLO.
+      <strong>Règles :</strong> une ligne par activité × groupe · pose → <span class="badge">L Salaire</span> (heures, HRE) ·
+      achat → <span class="badge">M Matériaux</span> · équip. → <span class="badge">E Équipement</span> ·
+      sous-traitant → <span class="badge">S Sous-traitants</span> · divers → <span class="badge">D Divers</span>.
     </div>
   </div>
 
   <div class="card hidden" id="result">
-    <h2>✅ Résultat</h2>
+    <h2><span class="step">4</span> Réviser / rebalancer le budget</h2>
+    <div class="rule">Vérifiez et ajustez les montants et heures au besoin (rebalancement). Les lignes modifiées sont surlignées. Le gabarit téléchargé contiendra les valeurs <strong>ajustées</strong>.</div>
     <div class="stats">
       <div class="sc"><div class="l">Activités</div><div class="v" id="s-act">0</div></div>
-      <div class="sc"><div class="l">Lignes de gabarit</div><div class="v" id="s-lines">0</div></div>
-      <div class="sc"><div class="l">Budget total</div><div class="v" id="s-total">0 $</div></div>
+      <div class="sc"><div class="l">Lignes</div><div class="v" id="s-lines">0</div></div>
+      <div class="sc"><div class="l">Budget estimé</div><div class="v" id="s-est">0 $</div></div>
+      <div class="sc"><div class="l">Budget ajusté</div><div class="v" id="s-adj">0 $</div></div>
+      <div class="sc ecart"><div class="l">Écart</div><div class="v" id="s-ec">0 $</div></div>
     </div>
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px">
-      <button class="btn" id="dl">⬇ Télécharger le gabarit (.xlsx)</button>
-      <span class="tip" id="fileout"></span>
+    <div class="grpbar" id="grpbar"></div>
+    <div class="toolsrow">
+      <input id="filter" type="text" placeholder="🔍 Filtrer (code ou description)…"/>
+      <button class="btn sec" id="reset">↺ Réinitialiser les ajustements</button>
+      <button class="btn" id="dl" style="margin-left:auto">⬇ Télécharger le gabarit (.xlsx)</button>
     </div>
-    <div class="rule" style="margin-bottom:14px">Avant d'importer dans Maestro : vérifiez le numéro de projet et que les groupes/unités correspondent à votre configuration. Aperçu des 15 premières lignes ci-dessous.</div>
-    <div style="overflow-x:auto">
+    <div class="tblwrap">
       <table>
-        <thead><tr><th>Code activité</th><th>Description</th><th>Grp</th><th style="text-align:right">Budget-Qté</th><th>Unité</th><th style="text-align:right">Budget-Coûts</th></tr></thead>
-        <tbody id="preview"></tbody>
+        <thead><tr>
+          <th>Code activité</th><th>Description</th><th>Grp</th>
+          <th class="r">Heures</th><th>Unité</th>
+          <th class="r">Budget estimé</th><th class="r">Budget ajusté</th><th class="r">Écart</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr>
+          <td colspan="5">TOTAL</td>
+          <td class="r" id="f-est">0</td><td class="r" id="f-adj">0</td><td class="r" id="f-ec">0</td><td></td>
+        </tr></tfoot>
       </table>
     </div>
+    <p class="tip" id="fileout"></p>
   </div>
 </div>
 
 <script>
-// ===== Logique de transformation (validée : parité avec la référence) =====
+// ===== Transformation (logique validée : parité confirmée) =====
 function parseCSV(text, delim){
   const rows=[]; let row=[]; let field=''; let i=0; let inQ=false;
   while(i<text.length){
     const ch=text[i];
-    if(inQ){
-      if(ch==='"'){ if(text[i+1]==='"'){field+='"';i+=2;continue;} inQ=false;i++;continue; }
-      field+=ch;i++;continue;
-    }
+    if(inQ){ if(ch==='"'){ if(text[i+1]==='"'){field+='"';i+=2;continue;} inQ=false;i++;continue; } field+=ch;i++;continue; }
     if(ch==='"' && field===''){inQ=true;i++;continue;}
     if(ch===delim){row.push(field);field='';i++;continue;}
     if(ch==='\r'){i++;continue;}
@@ -140,24 +163,28 @@ function transform(rows, projet){
     if(m){ cur={code:m[1].trim(),nom:m[2].trim(),L:0,M:0,E:0,S:0,D:0,temps:0}; acts.push(cur); continue; }
     if(prod && cur){ for(const [g,col] of GROUPS) cur[g]+=num(row[col]); cur.temps+=num(row[TEMPS]); }
   }
-  const out=[];
+  const lines=[];
   for(const a of acts){
     for(const g of ['L','M','E','S','D']){
       const montant=Math.round(a[g]*100)/100; if(montant===0)continue;
-      const line={A:projet,B:a.code,C:a.nom,D:'Activité',F:g,I:montant};
-      if(g==='L'){ line.H=Math.round(a.temps*100)/100; line.K='HRE'; line.L=Math.round(a.temps*100)/100; }
-      else { line.K='GLO'; }
-      out.push(line);
+      const o={code:a.code,nom:a.nom,grp:g,
+        i0:montant,i:montant,
+        h0:(g==='L'?Math.round(a.temps*100)/100:null),h:(g==='L'?Math.round(a.temps*100)/100:null),
+        k0:(g==='L'?'HRE':'GLO'),k:(g==='L'?'HRE':'GLO')};
+      lines.push(o);
     }
   }
-  return {acts:acts.length, lines:out};
+  return {acts:acts.length, lines};
 }
 const HEADERS=['Code projet','Code activité','Description','Type activité','Préfixe','Groupe','Catégorie','Budget - Qté','Budget - Coûts','Budget - Revenus','Qté à réaliser - Unité','Qté à réaliser - Originale','Qté à réaliser - Modifiée','No OTP','CSST','Type suivi','DMSRB','Comptes - Matériaux','Comptes - Sous-traitants','Comptes - Divers','Comptes - Salaires','Comptes - Équipements','Comptes - Revenu','Modification Budget - Qté','Modification Budget - Coûts','Modification Budget - Revenus',"Disponible dans *MOBILE - Main-d'oeuvre",'Disponible dans *MOBILE - Équipement','Disponible dans *MOBILE - Matériel',"Disponible dans *MOBILE - Pourcentage d'avancement"];
-const GRPLABEL={L:'L Salaire',M:'M Matériaux',E:'E Équipement',S:'S Sous-traitants',D:'D Divers'};
+const GLABEL={L:'Salaire',M:'Matériaux',E:'Équipement',S:'Sous-traitants',D:'Divers'};
 
 // ===== UI =====
 const $=id=>document.getElementById(id);
-let fileBuf=null, fileName='', lastLines=null;
+const money=v=>v.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
+const money2=v=>v.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
+let fileBuf=null, ROWS=[], NACT=0;
+
 const drop=$('drop'), fileInput=$('file');
 drop.addEventListener('click',()=>fileInput.click());
 ['dragover','dragenter'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over');}));
@@ -165,58 +192,87 @@ drop.addEventListener('click',()=>fileInput.click());
 drop.addEventListener('drop',ev=>{ if(ev.dataTransfer.files[0]) loadFile(ev.dataTransfer.files[0]); });
 fileInput.addEventListener('change',ev=>{ if(ev.target.files[0]) loadFile(ev.target.files[0]); });
 $('projet').addEventListener('input',refreshBtn);
+$('filter').addEventListener('input',renderRows);
+$('reset').addEventListener('click',()=>{ ROWS.forEach(r=>{r.i=r.i0;r.h=r.h0;r.k=r.k0;}); renderRows(); recompute(); });
 
-function loadFile(f){
-  fileName=f.name; $('fname').textContent='✓ '+f.name;
-  const rd=new FileReader();
-  rd.onload=e=>{ fileBuf=e.target.result; refreshBtn(); };
-  rd.readAsArrayBuffer(f);
-}
-function refreshBtn(){ $('go').disabled = !(fileBuf && $('projet').value.trim()); }
-
-function msg(t,cls){ $('message').innerHTML='<div class="msg '+cls+'">'+t+'</div>'; }
+function loadFile(f){ $('fname').textContent='✓ '+f.name; const rd=new FileReader(); rd.onload=e=>{fileBuf=e.target.result;refreshBtn();}; rd.readAsArrayBuffer(f); }
+function refreshBtn(){ $('go').disabled=!(fileBuf && $('projet').value.trim()); }
+function msg(t,c){ $('message').innerHTML='<div class="msg '+c+'">'+t+'</div>'; }
 
 $('go').addEventListener('click',()=>{
   try{
-    const projet=$('projet').value.trim();
     const text=new TextDecoder('windows-1252').decode(fileBuf);
-    const rows=parseCSV(text,';');
-    const {acts,lines}=transform(rows,projet);
-    if(!lines.length){ msg('⚠ Aucune activité avec budget trouvée. Vérifiez que c\'est bien l\'export « Sections » de l\'Estimateur Général.','err'); return; }
-    lastLines=lines;
-    let total=0; lines.forEach(l=>total+=l.I);
-    $('s-act').textContent=acts;
-    $('s-lines').textContent=lines.length;
-    $('s-total').textContent=total.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
-    // aperçu
-    $('preview').innerHTML=lines.slice(0,15).map(l=>`<tr>
-      <td><code>${l.B}</code></td><td>${l.C}</td>
-      <td><span class="badge">${l.F}</span></td>
-      <td class="num">${l.H!=null?l.H.toLocaleString('fr-CA'):''}</td>
-      <td>${l.K}</td>
-      <td class="num">${l.I.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-    </tr>`).join('');
+    const {acts,lines}=transform(parseCSV(text,';'), $('projet').value.trim());
+    if(!lines.length){ msg('⚠ Aucune activité avec budget trouvée. Vérifiez que c\'est bien l\'export « CSV détaillé » de l\'Estimateur Général.','err'); return; }
+    ROWS=lines; NACT=acts;
+    $('s-act').textContent=acts; $('s-lines').textContent=lines.length;
     $('result').classList.remove('hidden');
-    msg('Gabarit prêt : '+lines.length+' lignes générées pour '+acts+' activités.','ok');
+    renderRows(); recompute();
+    msg('Budget généré : '+lines.length+' lignes pour '+acts+' activités. Révisez au besoin avant de télécharger.','ok');
     $('result').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){ msg('⚠ Erreur : '+err.message,'err'); }
 });
 
+function renderRows(){
+  const q=($('filter').value||'').toLowerCase();
+  const tb=$('tbody'); tb.innerHTML='';
+  ROWS.forEach((r,idx)=>{
+    if(q && !r.code.toLowerCase().includes(q) && !r.nom.toLowerCase().includes(q)) return;
+    const ec=Math.round((r.i-r.i0)*100)/100;
+    const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0);
+    const tr=document.createElement('tr'); if(edited) tr.className='edited';
+    tr.innerHTML=
+      '<td style="font-family:var(--mono)">'+r.code+'</td>'+
+      '<td>'+r.nom+'</td>'+
+      '<td><span class="badge">'+r.grp+'</span></td>'+
+      '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-i="'+idx+'" data-f="h">':'—')+'</td>'+
+      '<td><input class="cell-u" type="text" value="'+r.k+'" data-i="'+idx+'" data-f="k"></td>'+
+      '<td class="r" style="color:var(--g5)">'+money2(r.i0)+'</td>'+
+      '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-i="'+idx+'" data-f="i"></td>'+
+      '<td class="r '+(ec>0?'delta-pos':ec<0?'delta-neg':'')+'">'+(ec===0?'':(ec>0?'+':'')+money2(ec))+'</td>'+
+      '<td><button class="del" title="Retirer la ligne" data-del="'+idx+'">✕</button></td>';
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',onEdit));
+  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{ ROWS.splice(+b.dataset.del,1); renderRows(); recompute(); }));
+}
+function onEdit(e){
+  const i=+e.target.dataset.i, f=e.target.dataset.f;
+  if(f==='k'){ ROWS[i].k=e.target.value; }
+  else { const v=parseFloat(e.target.value); ROWS[i][f]=isNaN(v)?0:v; }
+  recompute();
+  const r=ROWS[i]; const tr=e.target.closest('tr');
+  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0); tr.classList.toggle('edited',edited);
+  if(f==='i'){ const ec=Math.round((r.i-r.i0)*100)/100; const cell=tr.children[7];
+    cell.textContent=ec===0?'':(ec>0?'+':'')+money2(ec); cell.className='r '+(ec>0?'delta-pos':ec<0?'delta-neg':''); }
+}
+function recompute(){
+  let est=0,adj=0; const byg={L:0,M:0,E:0,S:0,D:0};
+  ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; });
+  const ec=Math.round((adj-est)*100)/100;
+  $('s-est').textContent=money(est); $('s-adj').textContent=money(adj);
+  $('s-ec').textContent=(ec>0?'+':'')+money(ec);
+  $('f-est').textContent=money2(est); $('f-adj').textContent=money2(adj);
+  $('f-ec').textContent=(ec>0?'+':'')+money2(ec);
+  $('s-lines').textContent=ROWS.length;
+  $('grpbar').innerHTML=['L','M','E','S','D'].map(g=>'<span class="grpchip">'+g+' '+GLABEL[g]+' : <b>'+money(byg[g])+'</b></span>').join('');
+}
+
 $('dl').addEventListener('click',()=>{
-  if(!lastLines) return;
+  if(!ROWS.length){ return; }
   const projet=$('projet').value.trim()||'projet';
   const aoa=[HEADERS];
-  for(const l of lastLines){
+  for(const r of ROWS){
     const row=new Array(30).fill('');
-    row[0]=l.A; row[1]=l.B; row[2]=l.C; row[3]=l.D; row[5]=l.F;
-    if(l.H!=null) row[7]=l.H; row[8]=l.I; row[10]=l.K; if(l.L!=null) row[11]=l.L;
+    row[0]=projet; row[1]=r.code; row[2]=r.nom; row[3]='Activité'; row[5]=r.grp;
+    if(r.grp==='L'){ row[7]=r.h||0; row[11]=r.h||0; }
+    row[8]=Math.round(r.i*100)/100; row[10]=r.k||'';
     aoa.push(row);
   }
-  const ws=XLSX.utils.aoa_to_sheet(aoa);
-  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Feuil1');
+  const ws=XLSX.utils.aoa_to_sheet(aoa); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Feuil1');
   const date=new Date().toISOString().slice(0,10);
   const fn=('Gabarit_Maestro_'+projet+'_'+date+'.xlsx').replace(/[^a-zA-Z0-9_.-]/g,'_');
-  $('fileout').textContent='Fichier : '+fn;
+  $('fileout').textContent='Fichier téléchargé : '+fn;
   XLSX.writeFile(wb,fn);
 });
 </script>
