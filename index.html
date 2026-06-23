@@ -15,20 +15,21 @@ body{font-family:var(--font);font-size:14px;color:var(--g6);background:var(--g1)
 .hdr{background:var(--blue);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:12px}
 .hdr h1{font-size:17px;font-weight:700}
 .hdr .sub{font-size:12px;opacity:.85;margin-top:2px}
-.wrap{max-width:1120px;margin:22px auto;padding:0 18px;display:flex;flex-direction:column;gap:16px}
+.wrap{max-width:1160px;margin:22px auto;padding:0 18px;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--white);border:1px solid var(--g3);border-radius:6px;padding:18px 20px}
 .card h2{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .step{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
 label{font-size:12px;font-weight:600;color:var(--g5);display:block;margin-bottom:5px}
 input[type=text]{border:1px solid var(--g3);border-radius:4px;padding:8px 11px;font-size:14px;font-family:var(--font);width:240px;outline:none}
-input[type=text]:focus,input[type=number]:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
+input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
 input[type=file]{font-size:12px}
+select{border:1px solid var(--g3);border-radius:4px;padding:6px 9px;font-size:13px;font-family:var(--font);max-width:360px}
 .drop{border:2px dashed var(--g3);border-radius:6px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--g1)}
 .drop:hover,.drop.over{border-color:var(--blue);background:var(--blue-lt)}
 .drop .ic{font-size:28px;margin-bottom:6px}
 .drop .fn{font-size:13px;color:var(--blue);font-weight:600;margin-top:6px}
 .tip{font-size:11px;color:var(--g4);margin-top:8px;line-height:1.6}
-.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:5px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:5px;border:1px solid var(--blue);background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)}
 .btn:hover{background:#106EBE}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .btn.sec{background:var(--white);color:var(--g5);border-color:var(--g3)}
@@ -43,12 +44,15 @@ input[type=file]{font-size:12px}
 .grpchip b{color:var(--g6)}
 .toolsrow{display:flex;gap:10px;align-items:center;margin:10px 0;flex-wrap:wrap}
 .toolsrow input[type=text]{width:220px;padding:6px 9px;font-size:13px}
+.selbar{background:var(--blue-lt);border:1px solid var(--blue-md);border-radius:5px;padding:9px 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th{position:sticky;top:0;background:var(--g6);color:#fff;text-align:left;padding:7px 9px;font-size:10px;text-transform:uppercase;letter-spacing:.03em;z-index:2}
 th.r{text-align:right}
 td{padding:4px 9px;border-bottom:1px solid var(--g2);vertical-align:middle}
 td.r{text-align:right;font-variant-numeric:tabular-nums}
+td.c,th.c{text-align:center}
 tr.edited td{background:var(--amber-lt)}
+tr.selected td{background:var(--blue-lt)}
 .tblwrap{max-height:460px;overflow:auto;border:1px solid var(--g3);border-radius:5px}
 .cell-in{width:96px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
 .cell-h{width:60px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px}
@@ -94,7 +98,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
     <div class="opt">
       <label>Correspondance MF → WBS <span style="font-weight:400;color:var(--g4)">(optionnel — pour remplir le « No OTP »)</span></label>
       <input id="mapfile" type="file" accept=".json,.csv,.xlsx,.xls"/>
-      <p class="tip" id="mapinfo">Accepte l'export JSON de l'app WBS, ou un fichier à deux colonnes : <code>code MF/activité ; code de lot (No OTP)</code>. Sans ce fichier, le No OTP reste vide (vous pourrez le saisir manuellement).</p>
+      <p class="tip" id="mapinfo">Accepte l'export JSON de l'app WBS, ou un fichier à deux colonnes : <code>code MF/activité ; code de lot (No OTP)</code>. Sans ce fichier, le No OTP reste vide (saisie manuelle possible).</p>
     </div>
   </div>
 
@@ -111,7 +115,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
 
   <div class="card hidden" id="result">
     <h2><span class="step">4</span> Réviser / rebalancer / rattacher au WBS</h2>
-    <div class="rule">Ajustez montants et heures au besoin (rebalancement) et vérifiez le No OTP (code de lot WBS). Les lignes modifiées sont surlignées; un No OTP vide est surligné en jaune. Le gabarit téléchargé contient les valeurs <strong>ajustées</strong>.</div>
+    <div class="rule">Ajustez montants et heures (rebalancement), redistribuez des lignes vers un autre code, et vérifiez le No OTP (lot WBS). Le gabarit téléchargé contient les valeurs <strong>ajustées</strong>.</div>
     <div class="stats">
       <div class="sc"><div class="l">Activités</div><div class="v" id="s-act">0</div></div>
       <div class="sc"><div class="l">Lignes</div><div class="v" id="s-lines">0</div></div>
@@ -126,9 +130,19 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <button class="btn sec" id="reset">↺ Réinitialiser les ajustements</button>
       <button class="btn" id="dl" style="margin-left:auto">⬇ Télécharger le gabarit (.xlsx)</button>
     </div>
+    <div class="selbar hidden" id="selbar">
+      <span id="selinfo"></span>
+      <label style="margin:0">Montant :</label>
+      <input type="number" id="ramount" step="0.01" min="0" title="Montant à redistribuer (max = total sélectionné)" style="width:110px;text-align:right;border:1px solid var(--g3);border-radius:4px;padding:6px 9px;font-size:13px;font-family:var(--mono)">
+      <label style="margin:0">vers :</label>
+      <select id="rtarget"></select>
+      <button class="btn" id="redis">↪ Redistribuer</button>
+      <button class="btn sec" id="deselect">Désélectionner</button>
+    </div>
     <div class="tblwrap">
       <table>
         <thead><tr>
+          <th class="c"><input type="checkbox" id="selall" title="Tout sélectionner (filtré)"></th>
           <th>Code activité</th><th>Description</th><th>Grp</th>
           <th class="r">Heures</th><th>Unité</th>
           <th class="r">Budget estimé</th><th class="r">Budget ajusté</th><th class="r">Écart</th>
@@ -136,7 +150,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
         </tr></thead>
         <tbody id="tbody"></tbody>
         <tfoot><tr>
-          <td colspan="5">TOTAL</td>
+          <td colspan="6">TOTAL</td>
           <td class="r" id="f-est">0</td><td class="r" id="f-adj">0</td><td class="r" id="f-ec">0</td><td colspan="2"></td>
         </tr></tfoot>
       </table>
@@ -187,35 +201,24 @@ function transform(rows){
   }
   return {acts:acts.length, lines};
 }
-// ----- Correspondance MF → WBS -----
 function lookupOtp(code, map){
-  if(map[code]) return map[code];                       // code d'activité exact (ex. 01 00 01.01)
-  const b=(code.match(BASE_RE)||[])[0];                 // base MasterFormat (ex. 01 00 01)
+  if(map[code]) return map[code];
+  const b=(code.match(BASE_RE)||[])[0];
   if(b && map[b]) return map[b];
   return '';
 }
 function buildMapping(name, buf){
-  const map={};
-  const low=name.toLowerCase();
+  const map={}; const low=name.toLowerCase();
   if(low.endsWith('.json')){
     const d=JSON.parse(new TextDecoder('utf-8').decode(buf));
     (d.lots||[]).forEach(l=>{ (l.mfLinks||[]).forEach(mf=>{ const k=(mf||'').toString().trim(); if(k) map[k]=l.code; }); });
     return map;
   }
   let rows;
-  if(low.endsWith('.csv')){
-    let txt=new TextDecoder('windows-1252').decode(buf);
-    rows=parseCSV(txt,';'); if(rows[0] && rows[0].length<2) rows=parseCSV(txt,',');
-  } else {
-    const wb=XLSX.read(buf,{type:'array'}); rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
-  }
-  for(const r of rows){
-    if(!r||r.length<2)continue;
-    const code=(r[0]||'').toString().trim(); const otp=(r[1]||'').toString().trim();
-    if(!code||!otp)continue;
-    if(/^(code|mf|activ|section)/i.test(code))continue; // sauter l'entête
-    map[code]=otp;
-  }
+  if(low.endsWith('.csv')){ let txt=new TextDecoder('windows-1252').decode(buf); rows=parseCSV(txt,';'); if(rows[0] && rows[0].length<2) rows=parseCSV(txt,','); }
+  else { const wb=XLSX.read(buf,{type:'array'}); rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}); }
+  for(const r of rows){ if(!r||r.length<2)continue; const code=(r[0]||'').toString().trim(); const otp=(r[1]||'').toString().trim();
+    if(!code||!otp)continue; if(/^(code|mf|activ|section)/i.test(code))continue; map[code]=otp; }
   return map;
 }
 const HEADERS=['Code projet','Code activité','Description','Type activité','Préfixe','Groupe','Catégorie','Budget - Qté','Budget - Coûts','Budget - Revenus','Qté à réaliser - Unité','Qté à réaliser - Originale','Qté à réaliser - Modifiée','No OTP','CSST','Type suivi','DMSRB','Comptes - Matériaux','Comptes - Sous-traitants','Comptes - Divers','Comptes - Salaires','Comptes - Équipements','Comptes - Revenu','Modification Budget - Qté','Modification Budget - Coûts','Modification Budget - Revenus',"Disponible dans *MOBILE - Main-d'oeuvre",'Disponible dans *MOBILE - Équipement','Disponible dans *MOBILE - Matériel',"Disponible dans *MOBILE - Pourcentage d'avancement"];
@@ -225,7 +228,7 @@ const GLABEL={L:'Salaire',M:'Matériaux',E:'Équipement',S:'Sous-traitants',D:'D
 const $=id=>document.getElementById(id);
 const money=v=>v.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
 const money2=v=>v.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
-let fileBuf=null, MAP={}, mapName='', ROWS=[];
+let fileBuf=null, MAP={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0;
 
 const drop=$('drop'), fileInput=$('file');
 drop.addEventListener('click',()=>fileInput.click());
@@ -236,16 +239,17 @@ fileInput.addEventListener('change',ev=>{ if(ev.target.files[0]) loadFile(ev.tar
 $('mapfile').addEventListener('change',ev=>{ if(ev.target.files[0]) loadMap(ev.target.files[0]); });
 $('projet').addEventListener('input',refreshBtn);
 $('filter').addEventListener('input',renderRows);
-$('reset').addEventListener('click',()=>{ ROWS.forEach(r=>{r.i=r.i0;r.h=r.h0;r.k=r.k0;}); renderRows(); recompute(); });
+$('reset').addEventListener('click',()=>{ ROWS=ORIG.map(r=>({...r})); SEL.clear(); renderRows(); recompute(); updateSelBar(); });
+$('deselect').addEventListener('click',()=>{ SEL.clear(); renderRows(); updateSelBar(); });
+$('selall').addEventListener('change',e=>{
+  const q=($('filter').value||'').toLowerCase();
+  ROWS.forEach(r=>{ const show=!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q); if(show){ if(e.target.checked)SEL.add(r.id); else SEL.delete(r.id);} });
+  renderRows(); updateSelBar();
+});
+$('redis').addEventListener('click',redistribute);
 
 function loadFile(f){ $('fname').textContent='✓ '+f.name; const rd=new FileReader(); rd.onload=e=>{fileBuf=e.target.result;refreshBtn();}; rd.readAsArrayBuffer(f); }
-function loadMap(f){
-  mapName=f.name; const rd=new FileReader();
-  rd.onload=e=>{ try{ MAP=buildMapping(f.name,e.target.result); const n=Object.keys(MAP).length;
-    $('mapinfo').innerHTML='✓ '+f.name+' — '+n+' correspondance(s) chargée(s).'; }
-    catch(err){ MAP={}; $('mapinfo').innerHTML='⚠ Fichier de correspondance illisible : '+err.message; } };
-  rd.readAsArrayBuffer(f);
-}
+function loadMap(f){ const rd=new FileReader(); rd.onload=e=>{ try{ MAP=buildMapping(f.name,e.target.result); const n=Object.keys(MAP).length; $('mapinfo').innerHTML='✓ '+f.name+' — '+n+' correspondance(s) chargée(s).'; }catch(err){ MAP={}; $('mapinfo').innerHTML='⚠ Fichier de correspondance illisible : '+err.message; } }; rd.readAsArrayBuffer(f); }
 function refreshBtn(){ $('go').disabled=!(fileBuf && $('projet').value.trim()); }
 function msg(t,c){ $('message').innerHTML='<div class="msg '+c+'">'+t+'</div>'; }
 
@@ -254,64 +258,96 @@ $('go').addEventListener('click',()=>{
     const text=new TextDecoder('windows-1252').decode(fileBuf);
     const {acts,lines}=transform(parseCSV(text,';'));
     if(!lines.length){ msg('⚠ Aucune activité avec budget trouvée. Vérifiez que c\'est bien l\'export « CSV détaillé » de l\'Estimateur Général.','err'); return; }
-    lines.forEach(l=>l.otp=lookupOtp(l.code, MAP));
-    ROWS=lines;
-    $('s-act').textContent=acts; $('s-lines').textContent=lines.length;
+    lines.forEach(l=>{ l.id=idc++; l.otp=lookupOtp(l.code, MAP); });
+    ORIG=lines.map(r=>({...r})); ROWS=lines.map(r=>({...r})); SEL.clear();
+    $('s-act').textContent=acts;
     $('result').classList.remove('hidden');
-    renderRows(); recompute();
+    renderRows(); recompute(); updateSelBar();
     msg('Budget généré : '+lines.length+' lignes pour '+acts+' activités. Révisez au besoin avant de télécharger.','ok');
     $('result').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){ msg('⚠ Erreur : '+err.message,'err'); }
 });
 
+function rowById(id){ return ROWS.find(r=>r.id===id); }
+
 function renderRows(){
   const q=($('filter').value||'').toLowerCase();
   const tb=$('tbody'); tb.innerHTML='';
-  ROWS.forEach((r,idx)=>{
+  ROWS.forEach(r=>{
     if(q && !r.code.toLowerCase().includes(q) && !r.nom.toLowerCase().includes(q)) return;
     const ec=Math.round((r.i-r.i0)*100)/100;
     const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0);
-    const tr=document.createElement('tr'); if(edited) tr.className='edited';
+    const tr=document.createElement('tr'); tr.className=(SEL.has(r.id)?'selected ':'')+(edited?'edited':'');
     tr.innerHTML=
+      '<td class="c"><input type="checkbox" class="selbox" data-id="'+r.id+'" '+(SEL.has(r.id)?'checked':'')+'></td>'+
       '<td style="font-family:var(--mono)">'+r.code+'</td>'+
       '<td>'+r.nom+'</td>'+
       '<td><span class="badge">'+r.grp+'</span></td>'+
-      '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-i="'+idx+'" data-f="h">':'—')+'</td>'+
-      '<td><input class="cell-u" type="text" value="'+r.k+'" data-i="'+idx+'" data-f="k"></td>'+
+      '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-id="'+r.id+'" data-f="h">':'—')+'</td>'+
+      '<td><input class="cell-u" type="text" value="'+r.k+'" data-id="'+r.id+'" data-f="k"></td>'+
       '<td class="r" style="color:var(--g5)">'+money2(r.i0)+'</td>'+
-      '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-i="'+idx+'" data-f="i"></td>'+
+      '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-id="'+r.id+'" data-f="i"></td>'+
       '<td class="r '+(ec>0?'delta-pos':ec<0?'delta-neg':'')+'">'+(ec===0?'':(ec>0?'+':'')+money2(ec))+'</td>'+
-      '<td><input class="cell-o'+(r.otp?'':' empty')+'" type="text" value="'+r.otp+'" placeholder="—" data-i="'+idx+'" data-f="otp"></td>'+
-      '<td><button class="del" title="Retirer la ligne" data-del="'+idx+'">✕</button></td>';
+      '<td><input class="cell-o'+(r.otp?'':' empty')+'" type="text" value="'+r.otp+'" placeholder="—" data-id="'+r.id+'" data-f="otp"></td>'+
+      '<td><button class="del" title="Retirer la ligne" data-del="'+r.id+'">✕</button></td>';
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',onEdit));
-  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{ ROWS.splice(+b.dataset.del,1); renderRows(); recompute(); }));
+  tb.querySelectorAll('input.cell-in,input.cell-h,input.cell-u,input.cell-o').forEach(inp=>inp.addEventListener('input',onEdit));
+  tb.querySelectorAll('.selbox').forEach(cb=>cb.addEventListener('change',()=>{ const id=+cb.dataset.id; if(cb.checked)SEL.add(id);else SEL.delete(id); cb.closest('tr').classList.toggle('selected',cb.checked); updateSelBar(); }));
+  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{ const id=+b.dataset.del; ROWS=ROWS.filter(r=>r.id!==id); SEL.delete(id); renderRows(); recompute(); updateSelBar(); }));
 }
 function onEdit(e){
-  const i=+e.target.dataset.i, f=e.target.dataset.f;
-  if(f==='k'||f==='otp'){ ROWS[i][f]=e.target.value; }
-  else { const v=parseFloat(e.target.value); ROWS[i][f]=isNaN(v)?0:v; }
-  const r=ROWS[i]; const tr=e.target.closest('tr');
+  const id=+e.target.dataset.id, f=e.target.dataset.f; const r=rowById(id); if(!r) return;
+  if(f==='k'||f==='otp'){ r[f]=e.target.value; }
+  else { const v=parseFloat(e.target.value); r[f]=isNaN(v)?0:v; }
+  const tr=e.target.closest('tr');
   if(f==='otp'){ e.target.classList.toggle('empty',!r.otp); recompute(); return; }
   recompute();
   const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0); tr.classList.toggle('edited',edited);
-  if(f==='i'){ const ec=Math.round((r.i-r.i0)*100)/100; const cell=tr.children[7];
+  if(f==='i'){ const ec=Math.round((r.i-r.i0)*100)/100; const cell=tr.children[8];
     cell.textContent=ec===0?'':(ec>0?'+':'')+money2(ec); cell.className='r '+(ec>0?'delta-pos':ec<0?'delta-neg':''); }
+}
+function updateSelBar(){
+  const sel=ROWS.filter(r=>SEL.has(r.id));
+  if(!sel.length){ $('selbar').classList.add('hidden'); $('selall').checked=false; return; }
+  $('selbar').classList.remove('hidden');
+  let s=0; sel.forEach(r=>s+=r.i);
+  $('selinfo').innerHTML='<b>'+sel.length+'</b> ligne(s) sélectionnée(s) · max '+money2(s)+' $';
+  $('ramount').value=Math.round(s*100)/100; $('ramount').max=Math.round(s*100)/100;
+  $('rtarget').innerHTML=ROWS.filter(r=>!SEL.has(r.id)).map(r=>'<option value="'+r.id+'">'+r.code+' — '+(r.nom.length>32?r.nom.slice(0,32)+'…':r.nom)+' ('+r.grp+') · '+money2(r.i)+'</option>').join('');
+}
+function redistribute(){
+  const sel=ROWS.filter(r=>SEL.has(r.id)); if(!sel.length) return;
+  const tid=+$('rtarget').value; const target=rowById(tid); if(!target){ return; }
+  const selTotal=Math.round(sel.reduce((s,r)=>s+r.i,0)*100)/100;
+  let amount=parseFloat($('ramount').value); if(isNaN(amount)) amount=selTotal;
+  amount=Math.round(Math.max(0,Math.min(amount,selTotal))*100)/100;
+  if(amount<=0){ msg('⚠ Indiquez un montant à redistribuer.','err'); return; }
+  let drawn=0,sumH=0;
+  sel.forEach((src,idx)=>{
+    let draw=(idx===sel.length-1)?(amount-drawn):amount*(src.i/selTotal);
+    draw=Math.round(draw*100)/100; if(draw>src.i)draw=src.i; if(draw<0)draw=0;
+    if(src.grp==='L' && src.i>0 && src.h){ const hm=Math.round(src.h*(draw/src.i)*100)/100; src.h=Math.round((src.h-hm)*100)/100; sumH+=hm; }
+    src.i=Math.round((src.i-draw)*100)/100;
+    drawn=Math.round((drawn+draw)*100)/100;
+  });
+  target.i=Math.round((target.i+drawn)*100)/100;
+  if(target.grp==='L') target.h=Math.round(((target.h||0)+sumH)*100)/100;
+  const before=ROWS.length;
+  ROWS=ROWS.filter(r=> !(SEL.has(r.id) && Math.abs(r.i)<0.005) );
+  const removed=before-ROWS.length;
+  SEL.clear(); renderRows(); recompute(); updateSelBar();
+  msg('✓ '+money2(drawn)+' $ redistribué(s) vers '+target.code+(removed?(' · '+removed+' ligne(s) vidée(s) retirée(s)'):'')+'. Total inchangé.','ok');
 }
 function recompute(){
   let est=0,adj=0; const byg={L:0,M:0,E:0,S:0,D:0};
   ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; });
   const ec=Math.round((adj-est)*100)/100;
-  $('s-est').textContent=money(est); $('s-adj').textContent=money(adj);
-  $('s-ec').textContent=(ec>0?'+':'')+money(ec);
-  $('f-est').textContent=money2(est); $('f-adj').textContent=money2(adj);
-  $('f-ec').textContent=(ec>0?'+':'')+money2(ec);
+  $('s-est').textContent=money(est); $('s-adj').textContent=money(adj); $('s-ec').textContent=(ec>0?'+':'')+money(ec);
+  $('f-est').textContent=money2(est); $('f-adj').textContent=money2(adj); $('f-ec').textContent=(ec>0?'+':'')+money2(ec);
   $('s-lines').textContent=ROWS.length;
   $('grpbar').innerHTML=['L','M','E','S','D'].map(g=>'<span class="grpchip">'+g+' '+GLABEL[g]+' : <b>'+money(byg[g])+'</b></span>').join('');
-  // couverture WBS (par activité unique)
-  const seen={}, witho={};
-  ROWS.forEach(r=>{ seen[r.code]=1; if(r.otp) witho[r.code]=1; });
+  const seen={}, witho={}; ROWS.forEach(r=>{ seen[r.code]=1; if(r.otp) witho[r.code]=1; });
   const tot=Object.keys(seen).length, ok=Object.keys(witho).length;
   $('cover').innerHTML = tot? ('No OTP (WBS) rattaché : <b>'+ok+'/'+tot+'</b> activités'+(ok<tot?' — les manquants sont surlignés en jaune (saisie manuelle possible).':' ✓')) : '';
 }
