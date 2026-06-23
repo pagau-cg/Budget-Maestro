@@ -136,6 +136,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
     <p class="tip" id="cover"></p>
     <div class="toolsrow">
       <input id="filter" type="text" placeholder="🔍 Filtrer (code ou description)…"/>
+      <select id="grpfilter"><option value="">Tous les groupes</option><option value="L">L — Salaire</option><option value="M">M — Matériaux</option><option value="E">E — Équipement</option><option value="S">S — Sous-traitants</option><option value="D">D — Divers</option></select>
       <button class="btn sec" id="reset">↺ Réinitialiser les ajustements</button>
       <button class="btn" id="dl" style="margin-left:auto">⬇ Télécharger le gabarit (.xlsx)</button>
     </div>
@@ -166,7 +167,8 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
         </tr></thead>
         <tbody id="tbody"></tbody>
         <tfoot><tr>
-          <td colspan="6">TOTAL</td>
+          <td colspan="4">TOTAL</td>
+          <td class="r" id="f-h">0</td><td></td>
           <td class="r" id="f-est">0</td><td class="r" id="f-adj">0</td><td class="r" id="f-ec">0</td><td colspan="2"></td>
         </tr></tfoot>
       </table>
@@ -256,11 +258,12 @@ fileInput.addEventListener('change',ev=>{ if(ev.target.files[0]) loadFile(ev.tar
 $('mapfile').addEventListener('change',ev=>{ if(ev.target.files[0]) loadMap(ev.target.files[0]); });
 $('projet').addEventListener('input',refreshBtn);
 $('filter').addEventListener('input',renderRows);
+$('grpfilter').addEventListener('change',renderRows);
 $('reset').addEventListener('click',()=>{ ROWS=ORIG.map(r=>({...r})); SEL.clear(); renderRows(); recompute(); updateSelBar(); });
 $('deselect').addEventListener('click',()=>{ SEL.clear(); renderRows(); updateSelBar(); });
 $('selall').addEventListener('change',e=>{
-  const q=($('filter').value||'').toLowerCase();
-  ROWS.forEach(r=>{ const show=!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q); if(show){ if(e.target.checked)SEL.add(r.id); else SEL.delete(r.id);} });
+  const q=($('filter').value||'').toLowerCase(); const grpf=$('grpfilter').value;
+  ROWS.forEach(r=>{ const show=(!grpf||r.grp===grpf)&&(!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q)); if(show){ if(e.target.checked)SEL.add(r.id); else SEL.delete(r.id);} });
   renderRows(); updateSelBar();
 });
 $('redis').addEventListener('click',redistribute);
@@ -310,8 +313,8 @@ function rowHTML(r){
   '</tr>';
 }
 function renderRows(){
-  const q=($('filter').value||'').toLowerCase();
-  const visible=ROWS.filter(r=>!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q));
+  const q=($('filter').value||'').toLowerCase(); const grpf=$('grpfilter').value;
+  const visible=ROWS.filter(r=>(!grpf||r.grp===grpf) && (!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q)));
   let html='';
   if(!GROUPBY){ visible.forEach(r=>html+=rowHTML(r)); }
   else {
@@ -358,28 +361,35 @@ function redistribute(){
   let amount=parseFloat($('ramount').value); if(isNaN(amount)) amount=selTotal;
   amount=Math.round(Math.max(0,Math.min(amount,selTotal))*100)/100;
   if(amount<=0){ msg('⚠ Indiquez un montant à redistribuer.','err'); return; }
-  let drawn=0,sumH=0;
+  let drawn=0,drawn0=0,sumH=0,sumH0=0;
   sel.forEach((src,idx)=>{
     let draw=(idx===sel.length-1)?(amount-drawn):amount*(src.i/selTotal);
     draw=Math.round(draw*100)/100; if(draw>src.i)draw=src.i; if(draw<0)draw=0;
-    if(src.grp==='L' && src.i>0 && src.h){ const hm=Math.round(src.h*(draw/src.i)*100)/100; src.h=Math.round((src.h-hm)*100)/100; sumH+=hm; }
-    src.i=Math.round((src.i-draw)*100)/100;
-    drawn=Math.round((drawn+draw)*100)/100;
+    const frac=src.i>0?(draw/src.i):0;                         // fraction de la ligne déplacée
+    const i0m=Math.round(src.i0*frac*100)/100;                 // base (estimé) déplacée
+    if(src.grp==='L'){
+      const hm=Math.round((src.h||0)*frac*100)/100, h0m=Math.round((src.h0||0)*frac*100)/100;
+      src.h=Math.round(((src.h||0)-hm)*100)/100; src.h0=Math.round(((src.h0||0)-h0m)*100)/100;
+      sumH+=hm; sumH0+=h0m;
+    }
+    src.i=Math.round((src.i-draw)*100)/100; src.i0=Math.round((src.i0-i0m)*100)/100;
+    drawn=Math.round((drawn+draw)*100)/100; drawn0=Math.round((drawn0+i0m)*100)/100;
   });
-  target.i=Math.round((target.i+drawn)*100)/100;
-  if(target.grp==='L') target.h=Math.round(((target.h||0)+sumH)*100)/100;
+  target.i=Math.round((target.i+drawn)*100)/100; target.i0=Math.round((target.i0+drawn0)*100)/100;
+  if(target.grp==='L'){ target.h=Math.round(((target.h||0)+sumH)*100)/100; target.h0=Math.round(((target.h0||0)+sumH0)*100)/100; }
   const before=ROWS.length;
-  ROWS=ROWS.filter(r=> !(SEL.has(r.id) && Math.abs(r.i)<0.005) );
+  ROWS=ROWS.filter(r=> !(SEL.has(r.id) && Math.abs(r.i)<0.005 && Math.abs(r.i0)<0.005) );
   const removed=before-ROWS.length;
   SEL.clear(); renderRows(); recompute(); updateSelBar();
   msg('✓ '+money2(drawn)+' $ redistribué(s) vers '+target.code+(removed?(' · '+removed+' ligne(s) vidée(s) retirée(s)'):'')+'. Total inchangé.','ok');
 }
 function recompute(){
-  let est=0,adj=0; const byg={L:0,M:0,E:0,S:0,D:0};
-  ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; });
+  let est=0,adj=0,hh=0; const byg={L:0,M:0,E:0,S:0,D:0};
+  ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; if(r.h)hh+=r.h; });
   const ec=Math.round((adj-est)*100)/100;
   $('s-est').textContent=money(est); $('s-adj').textContent=money(adj); $('s-ec').textContent=(ec>0?'+':'')+money(ec);
   $('f-est').textContent=money2(est); $('f-adj').textContent=money2(adj); $('f-ec').textContent=(ec>0?'+':'')+money2(ec);
+  $('f-h').textContent=hh.toLocaleString('fr-CA',{maximumFractionDigits:1})+' h';
   $('s-lines').textContent=ROWS.length;
   $('grpbar').innerHTML=['L','M','E','S','D'].map(g=>'<span class="grpchip">'+g+' '+GLABEL[g]+' : <b>'+money(byg[g])+'</b></span>').join('');
   const seen={}, witho={}; ROWS.forEach(r=>{ seen[r.code]=1; if(r.otp) witho[r.code]=1; });
