@@ -54,6 +54,14 @@ td.r{text-align:right;font-variant-numeric:tabular-nums}
 td.c,th.c{text-align:center}
 tr.edited td{background:var(--amber-lt)}
 tr.selected td{background:var(--blue-lt)}
+.ccode{font-family:var(--mono);white-space:nowrap}
+tr.grouphdr td{background:#e9eef5;cursor:pointer;font-size:12px;padding:5px 10px}
+tr.grouphdr .gtog{display:inline-block;width:16px;color:var(--blue);font-weight:700}
+tr.grouphdr .gcnt{color:var(--g5);margin-left:12px}
+tr.grouphdr .gsub{float:right;font-weight:700}
+table.compact td{padding:1px 9px}
+table.compact .cell-in,table.compact .cell-h,table.compact .cell-u,table.compact .cell-o{padding:2px 5px}
+table.compact tr.grouphdr td{padding:3px 10px}
 .tblwrap{max-height:460px;overflow:auto;border:1px solid var(--g3);border-radius:5px}
 .cell-in{width:96px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
 .cell-h{width:60px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px}
@@ -131,6 +139,13 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <button class="btn sec" id="reset">↺ Réinitialiser les ajustements</button>
       <button class="btn" id="dl" style="margin-left:auto">⬇ Télécharger le gabarit (.xlsx)</button>
     </div>
+    <div class="toolsrow" style="margin-top:-2px">
+      <label style="margin:0">Regrouper :</label>
+      <select id="groupby"><option value="">Aucun</option><option value="section">Par section</option><option value="division">Par division</option></select>
+      <button class="btn sec" id="collapseAll">− Réduire</button>
+      <button class="btn sec" id="expandAll">+ Développer</button>
+      <label style="margin:0 0 0 10px;font-weight:400;display:inline-flex;align-items:center;gap:6px"><input type="checkbox" id="compact"> Affichage condensé</label>
+    </div>
     <div class="selbar hidden" id="selbar">
       <span id="selinfo"></span>
       <label style="margin:0">Montant :</label>
@@ -141,7 +156,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <button class="btn sec" id="deselect">Désélectionner</button>
     </div>
     <div class="tblwrap">
-      <table>
+      <table id="btable">
         <thead><tr>
           <th class="c"><input type="checkbox" id="selall" title="Tout sélectionner (filtré)"></th>
           <th>Code activité</th><th>Description</th><th>Grp</th>
@@ -229,7 +244,8 @@ const GLABEL={L:'Salaire',M:'Matériaux',E:'Équipement',S:'Sous-traitants',D:'D
 const $=id=>document.getElementById(id);
 const money=v=>v.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
 const money2=v=>v.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
-let fileBuf=null, MAP={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0;
+let fileBuf=null, MAP={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0, GROUPBY='', COLLAPSED=new Set();
+const DIVNAME={'01':'Conditions générales','02':'Démolition','03':'Béton','04':'Maçonnerie','05':'Métaux','06':'Bois & plastiques','07':'Étanchéité','08':'Portes & fenêtres','09':'Finitions','10':'Spécialités','11':'Équipements','12':'Ameublement','13':'Construction spéciale','14':'Transport vertical','21':'Protection incendie','22':'Plomberie','23':'CVCA','26':'Électricité','27':'Communications','28':'Sécurité','31':'Terrassement','32':'Aménagement ext.','33':'Réseaux','34':'Transport'};
 
 const drop=$('drop'), fileInput=$('file');
 drop.addEventListener('click',()=>fileInput.click());
@@ -248,6 +264,10 @@ $('selall').addEventListener('change',e=>{
   renderRows(); updateSelBar();
 });
 $('redis').addEventListener('click',redistribute);
+$('groupby').addEventListener('change',e=>{ GROUPBY=e.target.value; COLLAPSED.clear(); renderRows(); });
+$('compact').addEventListener('change',e=>{ const t=$('btable'); if(t) t.classList.toggle('compact',e.target.checked); });
+$('collapseAll').addEventListener('click',()=>{ if(!GROUPBY)return; COLLAPSED.clear(); ROWS.forEach(r=>COLLAPSED.add(rowKey(r))); renderRows(); });
+$('expandAll').addEventListener('click',()=>{ COLLAPSED.clear(); renderRows(); });
 
 function loadFile(f){ $('fname').textContent='✓ '+f.name; const rd=new FileReader(); rd.onload=e=>{fileBuf=e.target.result;refreshBtn();}; rd.readAsArrayBuffer(f); }
 function loadMap(f){ const rd=new FileReader(); rd.onload=e=>{ try{ MAP=buildMapping(f.name,e.target.result); const n=Object.keys(MAP).length; $('mapinfo').innerHTML='✓ '+f.name+' — '+n+' correspondance(s) chargée(s).'; }catch(err){ MAP={}; $('mapinfo').innerHTML='⚠ Fichier de correspondance illisible : '+err.message; } }; rd.readAsArrayBuffer(f); }
@@ -271,31 +291,45 @@ $('go').addEventListener('click',()=>{
 
 function rowById(id){ return ROWS.find(r=>r.id===id); }
 
+function rowKey(r){ return GROUPBY==='section'?((r.code.match(BASE_RE)||[r.code])[0]):GROUPBY==='division'?r.code.slice(0,2):''; }
+function rowHTML(r){
+  const ec=Math.round((r.i-r.i0)*100)/100;
+  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0);
+  return '<tr class="'+(SEL.has(r.id)?'selected ':'')+(edited?'edited':'')+'">'+
+    '<td class="c"><input type="checkbox" class="selbox" data-id="'+r.id+'" '+(SEL.has(r.id)?'checked':'')+'></td>'+
+    '<td class="ccode">'+r.code+'</td>'+
+    '<td>'+r.nom+'</td>'+
+    '<td><span class="badge">'+r.grp+'</span></td>'+
+    '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-id="'+r.id+'" data-f="h">':'—')+'</td>'+
+    '<td><input class="cell-u" type="text" value="'+r.k+'" data-id="'+r.id+'" data-f="k"></td>'+
+    '<td class="r" style="color:var(--g5)">'+money2(r.i0)+'</td>'+
+    '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-id="'+r.id+'" data-f="i"></td>'+
+    '<td class="r '+(ec>0?'delta-pos':ec<0?'delta-neg':'')+'">'+(ec===0?'':(ec>0?'+':'')+money2(ec))+'</td>'+
+    '<td><input class="cell-o'+(r.otp?'':' empty')+'" type="text" value="'+r.otp+'" placeholder="—" data-id="'+r.id+'" data-f="otp"></td>'+
+    '<td><button class="del" title="Retirer la ligne" data-del="'+r.id+'">✕</button></td>'+
+  '</tr>';
+}
 function renderRows(){
   const q=($('filter').value||'').toLowerCase();
-  const tb=$('tbody'); tb.innerHTML='';
-  ROWS.forEach(r=>{
-    if(q && !r.code.toLowerCase().includes(q) && !r.nom.toLowerCase().includes(q)) return;
-    const ec=Math.round((r.i-r.i0)*100)/100;
-    const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0);
-    const tr=document.createElement('tr'); tr.className=(SEL.has(r.id)?'selected ':'')+(edited?'edited':'');
-    tr.innerHTML=
-      '<td class="c"><input type="checkbox" class="selbox" data-id="'+r.id+'" '+(SEL.has(r.id)?'checked':'')+'></td>'+
-      '<td style="font-family:var(--mono)">'+r.code+'</td>'+
-      '<td>'+r.nom+'</td>'+
-      '<td><span class="badge">'+r.grp+'</span></td>'+
-      '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-id="'+r.id+'" data-f="h">':'—')+'</td>'+
-      '<td><input class="cell-u" type="text" value="'+r.k+'" data-id="'+r.id+'" data-f="k"></td>'+
-      '<td class="r" style="color:var(--g5)">'+money2(r.i0)+'</td>'+
-      '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-id="'+r.id+'" data-f="i"></td>'+
-      '<td class="r '+(ec>0?'delta-pos':ec<0?'delta-neg':'')+'">'+(ec===0?'':(ec>0?'+':'')+money2(ec))+'</td>'+
-      '<td><input class="cell-o'+(r.otp?'':' empty')+'" type="text" value="'+r.otp+'" placeholder="—" data-id="'+r.id+'" data-f="otp"></td>'+
-      '<td><button class="del" title="Retirer la ligne" data-del="'+r.id+'">✕</button></td>';
-    tb.appendChild(tr);
-  });
+  const visible=ROWS.filter(r=>!q||r.code.toLowerCase().includes(q)||r.nom.toLowerCase().includes(q));
+  let html='';
+  if(!GROUPBY){ visible.forEach(r=>html+=rowHTML(r)); }
+  else {
+    const groups=new Map();
+    visible.forEach(r=>{ const k=rowKey(r); if(!groups.has(k))groups.set(k,[]); groups.get(k).push(r); });
+    groups.forEach((rows,k)=>{
+      const sub=rows.reduce((s,r)=>s+r.i,0); const col=COLLAPSED.has(k);
+      const label=GROUPBY==='division'?('Division '+k+(DIVNAME[k]?' — '+DIVNAME[k]:'')):k;
+      html+='<tr class="grouphdr" data-gk="'+k+'"><td colspan="11"><span class="gtog">'+(col?'▸':'▾')+'</span><b class="ccode">'+label+'</b><span class="gcnt">'+rows.length+' ligne(s)</span><span class="gsub">'+money2(sub)+' $</span></td></tr>';
+      if(!col) rows.forEach(r=>html+=rowHTML(r));
+    });
+  }
+  $('tbody').innerHTML=html;
+  const tb=$('tbody');
+  tb.querySelectorAll('.grouphdr').forEach(h=>h.addEventListener('click',()=>{ const k=h.dataset.gk; if(COLLAPSED.has(k))COLLAPSED.delete(k);else COLLAPSED.add(k); renderRows(); }));
   tb.querySelectorAll('input.cell-in,input.cell-h,input.cell-u,input.cell-o').forEach(inp=>inp.addEventListener('input',onEdit));
   tb.querySelectorAll('.selbox').forEach(cb=>cb.addEventListener('change',()=>{ const id=+cb.dataset.id; if(cb.checked)SEL.add(id);else SEL.delete(id); cb.closest('tr').classList.toggle('selected',cb.checked); updateSelBar(); }));
-  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',()=>{ const id=+b.dataset.del; ROWS=ROWS.filter(r=>r.id!==id); SEL.delete(id); renderRows(); recompute(); updateSelBar(); }));
+  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); const id=+b.dataset.del; ROWS=ROWS.filter(r=>r.id!==id); SEL.delete(id); renderRows(); recompute(); updateSelBar(); }));
 }
 function onEdit(e){
   const id=+e.target.dataset.id, f=e.target.dataset.f; const r=rowById(id); if(!r) return;
