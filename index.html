@@ -196,7 +196,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
     </div>
     <p class="tip" id="fileout"></p>
   </div>
-  <div style="text-align:center;font-size:10.5px;color:var(--g4);padding:6px 0">Outil « Budget Maestro » · version 1.1 · Construction Gauthier</div>
+  <div style="text-align:center;font-size:10.5px;color:var(--g4);padding:6px 0">Outil « Budget Maestro » · version 1.2 · Construction Gauthier</div>
 </div>
 
 <script>
@@ -216,26 +216,42 @@ function parseCSV(text, delim){
   return rows;
 }
 function num(s){ s=(s||'').toString().replace(/\s| /g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; }
-const ACT_RE=/^(\d{2} \d{2} \d{2}\.\d+)\s+(.*)$/;
+// Un nom de feuille est libre dans l'Estimateur Général. On en extrait un code
+// MasterFormat s'il y en a un, sinon la feuille hérite du code de sa section.
+const ACT_RE=/^(\d{2} \d{2} \d{2}(?:\.\d+)?)(?=$|[\s\-–—:])\s*[-–—:]?\s*(.*)$/;
 const BASE_RE=/^\d{2} \d{2} \d{2}/;
 const GROUPS=[['L',12],['M',13],['E',14],['S',15],['D',16]];
 const POSE=12, GT=17, TEMPS=18;
 
+// Lecture STRUCTURELLE de l'export, sans jamais deviner à partir du texte :
+//   · changement de code en colonne « Section »  -> en-tête de SECTION
+//   · colonne « Desc. produit » vide             -> en-tête de FEUILLE (nom libre)
+//   · colonne « Desc. produit » remplie          -> ligne de PRODUIT
+// Une feuille dont le nom ne commence pas par un code MasterFormat est rattachée
+// au code de sa section. Aucune ligne ne peut donc être absorbée en silence.
 function transform(rows){
-  const acts=[]; let cur=null;
+  const acts=[]; const byCode=new Map(); const sections=[];
   // lignes de synthèse en bas de l'export : « Total », Administration, Taxes, TOTAL DE LA PHASE
   const synth={total:null,groupes:null,temps:null,admin:null,taxes:null,phase:null};
   const calc={L:0,M:0,E:0,S:0,D:0,temps:0};
   let nProduits=0, heuresHorsPose=0;
+  let sect=null, sc=null, cur=null, nFeuilles=0, nSansCode=0, nHorsSection=0;
+  const horsSection=[];   // feuilles dont le code ne correspond pas à leur section
+
+  const activite=(code,nom)=>{
+    let a=byCode.get(code);
+    if(!a){ a={code:code,nom:nom,L:0,M:0,E:0,S:0,D:0,temps:0}; byCode.set(code,a); acts.push(a); }
+    return a;
+  };
 
   for(let r=1;r<rows.length;r++){
     const row=rows[r]; if(!row||!row.some(c=>(c||'').trim()))continue;
-    const sect=(row[0]||'').trim();
+    const s=(row[0]||'').trim();
     const desc=(row[1]||'').trim();
     const prod=(row[4]||'').trim();
 
     // Une ligne sans code de section est une ligne de synthèse : jamais traitée comme un produit.
-    if(!sect){
+    if(!s){
       if(desc.toLowerCase()==='total'){
         synth.groupes={}; for(const [g,col] of GROUPS) synth.groupes[g]=num(row[col]);
         synth.total=num(row[GT]); synth.temps=num(row[TEMPS]);
@@ -248,14 +264,36 @@ function transform(rows){
       continue;
     }
 
-    const m=ACT_RE.exec(desc);
-    if(m){ cur={code:m[1].trim(),nom:m[2].trim(),L:0,M:0,E:0,S:0,D:0,temps:0}; acts.push(cur); continue; }
-    if(prod && cur){
-      nProduits++;
-      for(const [g,col] of GROUPS){ const v=num(row[col]); cur[g]+=v; calc[g]+=v; }
-      const t=num(row[TEMPS]); cur.temps+=t; calc.temps+=t;
-      if(t>0 && num(row[POSE])===0) heuresHorsPose+=t;
+    // Nouvelle section : la première ligne du bloc est l'en-tête de section.
+    if(s!==sect){
+      sect=s;
+      sc={code:s,nom:desc,feuilles:0,montant:0,temps:0,lignes:0};
+      sections.push(sc);
+      cur=activite(s,desc);          // défaut : les produits sans feuille vont sur la section
+      if(!prod) continue;            // l'en-tête de section ne porte pas de montant
     }
+
+    // En-tête de feuille : nom libre, code optionnel.
+    if(!prod){
+      const m=ACT_RE.exec(desc);
+      nFeuilles++; sc.feuilles++;
+      if(m){
+        const code=m[1].trim();
+        if(code.slice(0,8)!==sect) horsSection.push({code:code, nom:m[2].trim()||desc, sect:sect});
+        cur=activite(code, m[2].trim()||desc);
+      }
+      else { nSansCode++; cur=activite(sect, sc.nom); }
+      continue;
+    }
+
+    // Ligne de produit.
+    if(!cur){ nHorsSection++; continue; }
+    nProduits++; sc.lignes++;
+    let mt=0;
+    for(const [g,col] of GROUPS){ const v=num(row[col]); cur[g]+=v; calc[g]+=v; mt+=v; }
+    sc.montant+=mt;
+    const t=num(row[TEMPS]); cur.temps+=t; calc.temps+=t; sc.temps+=t;
+    if(t>0 && num(row[POSE])===0) heuresHorsPose+=t;
   }
 
   const lines=[];
@@ -272,6 +310,7 @@ function transform(rows){
   }
   calc.total=Math.round((calc.L+calc.M+calc.E+calc.S+calc.D)*100)/100;
   return {acts:acts.length, lines, synth, calc, nProduits, heuresHorsPose,
+          sections, nFeuilles, nSansCode, nHorsSection, horsSection,
           heuresPerdues:Math.round(heuresPerdues*100)/100};
 }
 function lookupOtp(code, map){
@@ -385,8 +424,53 @@ function renderRecon(d){
   if(s.temps!=null && Math.abs(s.temps-c.temps)>0.5){
     alertes.push('⚠ Heures : l\'outil lit '+money2(c.temps)+' h, le CSV en déclare '+money2(s.temps)+' h.');
   }
+  // 4) contrôles de structure
+  const neg=d.lines.filter(l=>l.i0<0);
+  if(neg.length){
+    alertes.push('⚠ <b>'+neg.length+' ligne(s) à montant négatif</b> ('
+      +neg.slice(0,4).map(l=>'<code>'+l.code+'</code> '+money2(l.i0)+' $').join(', ')
+      +') — subvention ou crédit. Vérifiez que Maestro accepte un budget négatif sur cette activité.');
+  }
+  if(d.nHorsSection>0){
+    alertes.push('⛔ <b>'+d.nHorsSection+' ligne(s) de produit hors de toute section.</b> '
+      +'Structure d\'export inattendue — <b>ne pas importer ce gabarit</b>.');
+  }
+  if(d.horsSection && d.horsSection.length){
+    alertes.push('⚠ <b>'+d.horsSection.length+' feuille(s) portent un code étranger à leur section</b> — '
+      +'elles créeront une <b>nouvelle phase</b> dans Maestro : '
+      +d.horsSection.slice(0,6).map(f=>'<code>'+f.code+'</code> dans '+f.sect).join(', ')
+      +(d.horsSection.length>6?', …':'')+'. Faute de frappe dans l\'Estimateur Général, ou phase volontaire : à trancher avant l\'import.');
+  }
+  if(d.nSansCode>0){
+    alertes.push('ℹ <b>'+d.nSansCode+' feuille(s) sans code MasterFormat dans leur nom</b> '
+      +'(ex. « Mur ext type ME-1 = … »). Leur budget est rattaché au <b>code de leur section</b>, '
+      +'pas perdu. Développez le contrôle par section ci-dessous pour les situer.');
+  }
   if(alertes.length) h+='<div style="padding:10px 12px;background:var(--amber-lt);border-top:1px solid var(--amber-bd);font-size:12.5px;line-height:1.7;color:var(--amber)">'
     +alertes.join('<br>')+'</div>';
+
+  // 5) contrôle par section — à comparer avec « Feuilles trouvées » dans l'Estimateur Général
+  if(d.sections && d.sections.length){
+    h+='<details style="border-top:1px solid var(--g3)"><summary style="cursor:pointer;padding:9px 12px;font-size:12.5px;font-weight:600">'
+      +'Contrôle par section — '+d.sections.length+' sections, '+d.nFeuilles+' feuilles, '+d.nProduits+' lignes de produit'
+      +' <span style="font-weight:400;color:var(--g4)">· comparez le nombre de feuilles avec « Feuilles trouvées » dans EG</span></summary>'
+      +'<div style="max-height:320px;overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<tr style="position:sticky;top:0;background:var(--g1)"><th style="text-align:left;padding:5px 12px">Section</th>'
+      +'<th style="text-align:left;padding:5px 8px">Nom</th><th style="text-align:right;padding:5px 8px">Feuilles</th>'
+      +'<th style="text-align:right;padding:5px 8px">Lignes</th><th style="text-align:right;padding:5px 8px">Heures</th>'
+      +'<th style="text-align:right;padding:5px 12px">Montant</th></tr>';
+    for(const sc of d.sections){
+      const vide=sc.montant===0;
+      h+='<tr style="border-top:1px solid var(--g2)'+(vide?';color:var(--g4)':'')+'">'
+        +'<td style="padding:4px 12px;font-family:var(--mono)">'+sc.code+'</td>'
+        +'<td style="padding:4px 8px">'+sc.nom.replace(/</g,'&lt;')+'</td>'
+        +'<td style="padding:4px 8px;text-align:right">'+sc.feuilles+'</td>'
+        +'<td style="padding:4px 8px;text-align:right">'+sc.lignes+'</td>'
+        +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)">'+money2(sc.temps)+'</td>'
+        +'<td style="padding:4px 12px;text-align:right;font-family:var(--mono)">'+money2(sc.montant)+' $</td></tr>';
+    }
+    h+='</table></div></details>';
+  }
 
   h+='</div>';
   $('recon').innerHTML=h;
@@ -401,11 +485,13 @@ $('go').addEventListener('click',()=>{
     lines.forEach(l=>{ l.id=idc++; l.otp=lookupOtp(l.code, MAP); });
     ORIG=lines.map(r=>({...r})); ROWS=lines.map(r=>({...r})); SEL.clear();
     DIAG=null;
-    $('s-act').textContent=acts;
+    $('s-act').textContent=new Set(lines.map(l=>l.code)).size;
     $('result').classList.remove('hidden');
     renderRecon(d);
     renderRows(); recompute(); updateSelBar();
-    msg('Budget généré : '+lines.length+' lignes pour '+acts+' activités, à partir de '+d.nProduits+' lignes de produit. Vérifiez la réconciliation ci-dessous avant de télécharger.','ok');
+    msg('Budget généré : '+lines.length+' lignes pour '+new Set(lines.map(l=>l.code)).size+' activités, '
+      +'lues dans '+d.sections.length+' sections / '+d.nFeuilles+' feuilles ('+d.nProduits+' lignes de produit). '
+      +'Vérifiez la réconciliation ci-dessous avant de télécharger.','ok');
     $('result').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){ msg('⚠ Erreur : '+err.message,'err'); }
 });
