@@ -8,7 +8,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--blue:#0078D4;--blue-lt:#EFF6FC;--blue-md:#BAD7F0;--teal:#107C55;--teal-lt:#DDF6EC;
---amber:#7A5C00;--amber-lt:#FFF8E1;--red:#A4262C;--red-lt:#FDE7E9;
+--amber:#7A5C00;--amber-lt:#FFF8E1;--amber-bd:#E8D08A;--red:#A4262C;--red-lt:#FDE7E9;--red-bd:#F0B7BA;
 --g1:#F3F2F1;--g2:#EDEBE9;--g3:#C8C6C4;--g4:#8A8886;--g5:#605E5C;--g6:#323130;--white:#fff;
 --font:'Segoe UI',system-ui,sans-serif;--mono:'Cascadia Code','Courier New',monospace}
 body{font-family:var(--font);font-size:14px;color:var(--g6);background:var(--g1);min-height:100vh;padding:0 0 50px}
@@ -22,6 +22,7 @@ body{font-family:var(--font);font-size:14px;color:var(--g6);background:var(--g1)
 label{font-size:12px;font-weight:600;color:var(--g5);display:block;margin-bottom:5px}
 input[type=text]{border:1px solid var(--g3);border-radius:4px;padding:8px 11px;font-size:14px;font-family:var(--font);outline:none}
 #projet{width:260px}
+#soustotal{width:220px;text-align:right;font-family:var(--mono)}
 input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(0,120,212,.15)}
 input[type=file]{font-size:12px}
 select{border:1px solid var(--g3);border-radius:4px;padding:6px 9px;font-size:13px;font-family:var(--font);max-width:360px}
@@ -67,19 +68,33 @@ table.compact tr.grouphdr td{padding:3px 10px}
 .cell-h{width:60px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px}
 .cell-u{width:50px;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;text-transform:uppercase}
 .cell-o{width:96px;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
-.cell-o.empty{border-color:#E8D08A;background:var(--amber-lt)}
+.cell-o.empty{border-color:var(--amber-bd);background:var(--amber-lt)}
 .badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:11px;font-weight:600;background:var(--g2);color:var(--g5)}
 .delta-pos{color:var(--teal)}.delta-neg{color:var(--red)}
 .msg{padding:10px 14px;border-radius:5px;font-size:13px;margin-top:10px}
 .msg.err{background:var(--red-lt);color:var(--red)}
 .msg.ok{background:var(--teal-lt);color:var(--teal)}
+.msg.warn{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-bd)}
 .legend{font-size:11px;color:var(--g5);line-height:1.8;margin-top:10px}
-.rule{background:var(--amber-lt);border:1px solid #E8D08A;border-radius:5px;padding:10px 14px;font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:12px}
+.rule{background:var(--amber-lt);border:1px solid var(--amber-bd);border-radius:5px;padding:10px 14px;font-size:12px;color:var(--amber);line-height:1.6;margin-bottom:12px}
 .hidden{display:none}
 .del{background:none;border:none;color:var(--g4);cursor:pointer;font-size:15px;line-height:1}
 .del:hover{color:var(--red)}
 tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
 .opt{margin-top:14px;padding-top:12px;border-top:1px solid var(--g2)}
+/* ---- réconciliation ---- */
+.recon{border:1px solid var(--g3);border-radius:6px;margin-bottom:14px;overflow:hidden}
+.recon .rtitle{background:var(--g6);color:#fff;padding:7px 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.recon table{font-size:12.5px}
+.recon td{padding:6px 12px;border-bottom:1px solid var(--g2)}
+.recon td.r{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+.recon tr.sub td{background:var(--g1);font-weight:700}
+.recon tr.ex td{color:var(--g4)}
+.recon .verdict{padding:10px 12px;font-size:13px;font-weight:600;line-height:1.6}
+.recon .verdict.ok{background:var(--teal-lt);color:var(--teal)}
+.recon .verdict.warn{background:var(--amber-lt);color:var(--amber)}
+.recon .verdict.bad{background:var(--red-lt);color:var(--red)}
+.recon .verdict small{display:block;font-weight:400;margin-top:3px;opacity:.9}
 </style>
 </head>
 <body>
@@ -91,8 +106,8 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
 <div class="wrap">
   <div class="card">
     <h2><span class="step">1</span> Numéro de projet Maestro</h2>
-    <input id="projet" type="text" placeholder="ex : 26-022" autocomplete="off"/>
-    <p class="tip">Ce code sera inscrit dans la colonne « Code projet » de chaque ligne du gabarit.</p>
+    <input id="projet" type="text" placeholder="ex : 25-056" autocomplete="off"/>
+    <p class="tip">Ce code sera inscrit dans la colonne « Code projet » de chaque ligne du gabarit. <b>Vérifiez-le deux fois</b> — un mauvais numéro importe le budget dans le mauvais dossier Maestro.</p>
   </div>
 
   <div class="card">
@@ -104,6 +119,11 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <input id="file" type="file" accept=".csv" class="hidden"/>
     </div>
     <p class="tip">Export « CSV détaillé » de l'Estimateur Général (clic droit dans le tableau des sections). Le fichier reste sur votre poste — aucun envoi sur Internet.</p>
+    <div class="opt">
+      <label>Sous total de l'estimation <span style="font-weight:400;color:var(--g4)">(onglet « Fermeture de soumission » — optionnel, mais c'est le seul vrai garde-fou)</span></label>
+      <input id="soustotal" type="text" placeholder="ex : 7 709 247,34" autocomplete="off"/>
+      <p class="tip">Recopiez le <b>Sous total</b> affiché à l'écran de fermeture, avant administration et taxes. L'outil compare et vous avertit. Ce seul contrôle attrape les deux pannes qui comptent : un <b>export incomplet</b>, et surtout un <b>mauvais fichier ou un mauvais numéro de projet</b>.</p>
+    </div>
     <div class="opt">
       <label>Correspondance MF → WBS <span style="font-weight:400;color:var(--g4)">(optionnel — pour remplir le « No OTP »)</span></label>
       <input id="mapfile" type="file" accept=".json,.csv,.xlsx,.xls"/>
@@ -124,6 +144,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
 
   <div class="card hidden" id="result">
     <h2><span class="step">4</span> Réviser / rebalancer / rattacher au WBS</h2>
+    <div id="recon"></div>
     <div class="rule">Ajustez montants et heures (rebalancement), redistribuez des lignes vers un autre code, et vérifiez le No OTP (lot WBS). Le gabarit téléchargé contient les valeurs <strong>ajustées</strong>.</div>
     <div class="stats">
       <div class="sc"><div class="l">Activités</div><div class="v" id="s-act">0</div></div>
@@ -175,6 +196,7 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
     </div>
     <p class="tip" id="fileout"></p>
   </div>
+  <div style="text-align:center;font-size:10.5px;color:var(--g4);padding:6px 0">Outil « Budget Maestro » · version 1.1 · Construction Gauthier</div>
 </div>
 
 <script>
@@ -193,22 +215,53 @@ function parseCSV(text, delim){
   if(field.length||row.length){row.push(field);rows.push(row);}
   return rows;
 }
-function num(s){ s=(s||'').toString().replace(/\s/g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; }
+function num(s){ s=(s||'').toString().replace(/\s| /g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; }
 const ACT_RE=/^(\d{2} \d{2} \d{2}\.\d+)\s+(.*)$/;
 const BASE_RE=/^\d{2} \d{2} \d{2}/;
 const GROUPS=[['L',12],['M',13],['E',14],['S',15],['D',16]];
-const TEMPS=18;
+const POSE=12, GT=17, TEMPS=18;
+
 function transform(rows){
   const acts=[]; let cur=null;
+  // lignes de synthèse en bas de l'export : « Total », Administration, Taxes, TOTAL DE LA PHASE
+  const synth={total:null,groupes:null,temps:null,admin:null,taxes:null,phase:null};
+  const calc={L:0,M:0,E:0,S:0,D:0,temps:0};
+  let nProduits=0, heuresHorsPose=0;
+
   for(let r=1;r<rows.length;r++){
     const row=rows[r]; if(!row||!row.some(c=>(c||'').trim()))continue;
-    const desc=(row[1]||'').trim(); const prod=(row[4]||'').trim();
+    const sect=(row[0]||'').trim();
+    const desc=(row[1]||'').trim();
+    const prod=(row[4]||'').trim();
+
+    // Une ligne sans code de section est une ligne de synthèse : jamais traitée comme un produit.
+    if(!sect){
+      if(desc.toLowerCase()==='total'){
+        synth.groupes={}; for(const [g,col] of GROUPS) synth.groupes[g]=num(row[col]);
+        synth.total=num(row[GT]); synth.temps=num(row[TEMPS]);
+      } else {
+        const p=prod.toLowerCase();
+        if(p==='administration') synth.admin=num(row[GT]);
+        else if(p==='taxes') synth.taxes=num(row[GT]);
+        else if(p.indexOf('total de la phase')===0) synth.phase=num(row[GT]);
+      }
+      continue;
+    }
+
     const m=ACT_RE.exec(desc);
     if(m){ cur={code:m[1].trim(),nom:m[2].trim(),L:0,M:0,E:0,S:0,D:0,temps:0}; acts.push(cur); continue; }
-    if(prod && cur){ for(const [g,col] of GROUPS) cur[g]+=num(row[col]); cur.temps+=num(row[TEMPS]); }
+    if(prod && cur){
+      nProduits++;
+      for(const [g,col] of GROUPS){ const v=num(row[col]); cur[g]+=v; calc[g]+=v; }
+      const t=num(row[TEMPS]); cur.temps+=t; calc.temps+=t;
+      if(t>0 && num(row[POSE])===0) heuresHorsPose+=t;
+    }
   }
+
   const lines=[];
+  let heuresPerdues=0;
   for(const a of acts){
+    if(Math.round(a.L*100)/100===0 && a.temps>0) heuresPerdues+=a.temps;
     for(const g of ['L','M','E','S','D']){
       const montant=Math.round(a[g]*100)/100; if(montant===0)continue;
       lines.push({code:a.code,nom:a.nom,grp:g,
@@ -217,7 +270,9 @@ function transform(rows){
         k0:(g==='L'?'HRE':'GLO'),k:(g==='L'?'HRE':'GLO'),otp:''});
     }
   }
-  return {acts:acts.length, lines};
+  calc.total=Math.round((calc.L+calc.M+calc.E+calc.S+calc.D)*100)/100;
+  return {acts:acts.length, lines, synth, calc, nProduits, heuresHorsPose,
+          heuresPerdues:Math.round(heuresPerdues*100)/100};
 }
 function lookupOtp(code, map){
   if(map[code]) return map[code];
@@ -247,6 +302,7 @@ const $=id=>document.getElementById(id);
 const money=v=>v.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
 const money2=v=>v.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
 let fileBuf=null, MAP={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0, GROUPBY='', COLLAPSED=new Set();
+let DIAG=null;   // résultat de la réconciliation, conservé pour le téléchargement
 const DIVNAME={'01':'Conditions générales','02':'Démolition','03':'Béton','04':'Maçonnerie','05':'Métaux','06':'Bois & plastiques','07':'Étanchéité','08':'Portes & fenêtres','09':'Finitions','10':'Spécialités','11':'Équipements','12':'Ameublement','13':'Construction spéciale','14':'Transport vertical','21':'Protection incendie','22':'Plomberie','23':'CVCA','26':'Électricité','27':'Communications','28':'Sécurité','31':'Terrassement','32':'Aménagement ext.','33':'Réseaux','34':'Transport'};
 
 const drop=$('drop'), fileInput=$('file');
@@ -277,17 +333,79 @@ function loadMap(f){ const rd=new FileReader(); rd.onload=e=>{ try{ MAP=buildMap
 function refreshBtn(){ $('go').disabled=!(fileBuf && $('projet').value.trim()); }
 function msg(t,c){ $('message').innerHTML='<div class="msg '+c+'">'+t+'</div>'; }
 
+// ===== Réconciliation avec l'estimation =====
+function renderRecon(d){
+  const s=d.synth, c=d.calc;
+  const declare=num($('soustotal').value);
+  const lig=(lab,val,cls,note)=>val==null?'':
+    '<tr class="'+(cls||'')+'"><td>'+lab+(note?' <span style="color:var(--g4);font-weight:400">'+note+'</span>':'')+'</td>'
+    +'<td class="r">'+money2(val)+' $</td></tr>';
+
+  let h='<div class="recon"><div class="rtitle">Réconciliation avec l\'estimation</div><table>';
+  h+=lig('Total des activités — <b>ce qui part dans le gabarit</b>', c.total,'sub');
+  if(s.admin!=null)  h+=lig('Administration', s.admin,'ex','· non importé');
+  if(s.taxes!=null)  h+=lig('Taxes', s.taxes,'ex','· non importé');
+  if(s.phase!=null)  h+=lig('Total de la phase', s.phase,'sub');
+  if(declare>0)      h+=lig('<b>Sous total saisi</b> (écran Fermeture de soumission)', declare,'sub');
+  h+='</table>';
+
+  const alertes=[];
+
+  // 1) le parseur est-il d'accord avec la ligne « Total » du CSV lui-même ?
+  if(s.total!=null && Math.abs(s.total-c.total)>0.05){
+    alertes.push('⛔ <b>Le fichier n\'est pas lu correctement.</b> L\'outil calcule '+money2(c.total)
+      +' $ alors que le CSV déclare '+money2(s.total)+' $ dans sa propre ligne « Total ». '
+      +'Le format de l\'export a probablement changé — <b>ne pas importer ce gabarit</b>, signalez-le.');
+  }
+
+  // 2) comparaison avec le sous total saisi
+  let verdict='';
+  if(declare>0){
+    const ec=declare-c.total, pct=Math.abs(ec)/declare*100;
+    DIAG={ecart:ec,pct:pct};
+    const l='Écart : <b>'+(ec>0?'+':'')+money2(ec)+' $</b> — '+pct.toFixed(3).replace('.',',')+' %';
+    if(pct<0.5) verdict='<div class="verdict ok">✓ Conforme. '+l
+      +'<small>Les montants du CSV correspondent à l\'estimation. Le relevé de quantité et la feuille de calcul sont bien descendus dans l\'export.</small></div>';
+    else if(pct<5) verdict='<div class="verdict warn">⚠ Écart notable. '+l
+      +'<small>Vérifiez que l\'export couvre toute la phase avant d\'importer dans Maestro.</small></div>';
+    else verdict='<div class="verdict bad">⛔ Écart majeur. '+l
+      +'<small>Les deux chiffres ne décrivent probablement pas la même estimation. Vérifiez que le CSV est celui du bon dossier, <b>et que le numéro de projet saisi à l\'étape 1 est le bon</b>.</small></div>';
+  } else {
+    verdict='<div class="verdict warn">Aucun sous total saisi — rien ne valide que ce CSV est celui du bon projet.'
+      +'<small>Recopiez le « Sous total » de l\'onglet Fermeture de soumission à l\'étape 2. C\'est le seul contrôle qui attrape un mauvais fichier ou un mauvais numéro de projet.</small></div>';
+  }
+  h+=verdict;
+
+  // 3) heures non reportées
+  if(d.heuresPerdues>0){
+    alertes.push('⚠ <b>'+money2(d.heuresPerdues)+' h non reportées.</b> Elles appartiennent à des activités '
+      +'dont le montant est entièrement hors « pose » (sous-traitance, achat…), donc sans ligne « L Salaire ». '
+      +'C\'est souvent correct — un arpenteur sous-traité n\'est pas de la main-d\'œuvre en régie — mais vérifiez-le.');
+  }
+  if(s.temps!=null && Math.abs(s.temps-c.temps)>0.5){
+    alertes.push('⚠ Heures : l\'outil lit '+money2(c.temps)+' h, le CSV en déclare '+money2(s.temps)+' h.');
+  }
+  if(alertes.length) h+='<div style="padding:10px 12px;background:var(--amber-lt);border-top:1px solid var(--amber-bd);font-size:12.5px;line-height:1.7;color:var(--amber)">'
+    +alertes.join('<br>')+'</div>';
+
+  h+='</div>';
+  $('recon').innerHTML=h;
+}
+
 $('go').addEventListener('click',()=>{
   try{
     const text=new TextDecoder('windows-1252').decode(fileBuf);
-    const {acts,lines}=transform(parseCSV(text,';'));
+    const d=transform(parseCSV(text,';'));
+    const {acts,lines}=d;
     if(!lines.length){ msg('⚠ Aucune activité avec budget trouvée. Vérifiez que c\'est bien l\'export « CSV détaillé » de l\'Estimateur Général.','err'); return; }
     lines.forEach(l=>{ l.id=idc++; l.otp=lookupOtp(l.code, MAP); });
     ORIG=lines.map(r=>({...r})); ROWS=lines.map(r=>({...r})); SEL.clear();
+    DIAG=null;
     $('s-act').textContent=acts;
     $('result').classList.remove('hidden');
+    renderRecon(d);
     renderRows(); recompute(); updateSelBar();
-    msg('Budget généré : '+lines.length+' lignes pour '+acts+' activités. Révisez au besoin avant de télécharger.','ok');
+    msg('Budget généré : '+lines.length+' lignes pour '+acts+' activités, à partir de '+d.nProduits+' lignes de produit. Vérifiez la réconciliation ci-dessous avant de télécharger.','ok');
     $('result').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){ msg('⚠ Erreur : '+err.message,'err'); }
 });
@@ -400,6 +518,14 @@ function recompute(){
 $('dl').addEventListener('click',()=>{
   if(!ROWS.length){ return; }
   const projet=$('projet').value.trim()||'projet';
+  // garde-fou : un écart majeur signale presque toujours un mauvais fichier ou un mauvais numéro de projet
+  if(DIAG && DIAG.pct>=5){
+    if(!confirm("ÉCART MAJEUR DE "+DIAG.pct.toFixed(1)+" % avec le sous total saisi.\n\n"
+      +"Le CSV et l'estimation ne décrivent probablement pas le même dossier.\n"
+      +"Le gabarit portera le code projet « "+projet+" ».\n\n"
+      +"Importer un budget dans le mauvais projet Maestro écrase son budget existant.\n\n"
+      +"Télécharger quand même ?")) return;
+  }
   const aoa=[HEADERS];
   for(const r of ROWS){
     const row=new Array(30).fill('');
@@ -411,7 +537,7 @@ $('dl').addEventListener('click',()=>{
   const ws=XLSX.utils.aoa_to_sheet(aoa); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Feuil1');
   const date=new Date().toISOString().slice(0,10);
   const fn=('Gabarit_Maestro_'+projet+'_'+date+'.xlsx').replace(/[^a-zA-Z0-9_.-]/g,'_');
-  $('fileout').textContent='Fichier téléchargé : '+fn;
+  $('fileout').textContent='Fichier téléchargé : '+fn+' · code projet « '+projet+' »';
   XLSX.writeFile(wb,fn);
 });
 </script>
