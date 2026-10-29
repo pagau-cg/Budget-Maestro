@@ -61,11 +61,12 @@ tr.grouphdr .gtog{display:inline-block;width:16px;color:var(--blue);font-weight:
 tr.grouphdr .gcnt{color:var(--g5);margin-left:12px}
 tr.grouphdr .gsub{float:right;font-weight:700}
 table.compact td{padding:1px 9px}
-table.compact .cell-in,table.compact .cell-h,table.compact .cell-u,table.compact .cell-o{padding:2px 5px}
+table.compact .cell-in,table.compact .cell-h,table.compact .cell-q,table.compact .cell-u,table.compact .cell-o{padding:2px 5px}
 table.compact tr.grouphdr td{padding:3px 10px}
 .tblwrap{max-height:460px;overflow:auto;border:1px solid var(--g3);border-radius:5px}
 .cell-in{width:96px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
 .cell-h{width:60px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px}
+.cell-q{width:76px;text-align:right;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono);background:var(--teal-lt)}
 .cell-u{width:50px;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;text-transform:uppercase}
 .cell-o{width:96px;border:1px solid var(--g3);border-radius:3px;padding:4px 6px;font-size:12px;font-family:var(--mono)}
 .cell-o.empty{border-color:var(--amber-bd);background:var(--amber-lt)}
@@ -129,6 +130,11 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <input id="mapfile" type="file" accept=".json,.csv,.xlsx,.xls"/>
       <p class="tip" id="mapinfo">Accepte l'export JSON de l'app WBS, ou un fichier à deux colonnes : <code>code MF/activité ; code de lot (No OTP)</code>. Sans ce fichier, le No OTP reste vide (saisie manuelle possible).</p>
     </div>
+    <div class="opt">
+      <label>Dictionnaire des données Gauthier (DDN) <span style="font-weight:400;color:var(--g4)">(optionnel — pour nommer et valider les activités)</span></label>
+      <input id="ddnfile" type="file" accept=".xlsx,.xls,.csv,.json"/>
+      <p class="tip" id="ddninfo">Le fichier <code>DDN_Gauthier_2026</code> tel quel. Il sert à <b>nommer</b> les activités créées par regroupement et à signaler celles qui <b>n'existent pas encore au dictionnaire</b> — un avertissement, pas un blocage : Maestro crée l'activité qu'on lui donne. Sans ce fichier, les noms par défaut de l'outil s'appliquent et aucune validation n'est faite.</p>
+    </div>
   </div>
 
   <div class="card">
@@ -139,6 +145,10 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
       <strong>Règles :</strong> une ligne par activité × groupe · pose → <span class="badge">L Salaire</span> (heures, HRE) ·
       achat → <span class="badge">M Matériaux</span> · équip. → <span class="badge">E Équipement</span> ·
       sous-traitant → <span class="badge">S Sous-traitants</span> · divers → <span class="badge">D Divers</span>.
+      <br><strong>Relevés de quantités :</strong> les composants d'un assemblage sans code MasterFormat sont regroupés par famille et posés sur l'activité du DDN :
+      gypse, vis et coins → <code>09 21 16.01</code> · stud, lisse, résilient, sablière → <code>09 22 16.01</code> ·
+      laine → <code>07 21 16.02</code> (<code>.01</code> si l'assemblage d'origine est un mur extérieur) · ruban et scellant coupe-feu → <code>07 84 00.03</code>.
+      La <strong>surface de l'assemblage</strong> est reportée en pi.ca comme quantité à réaliser. Une famille non reconnue reste sur le code de sa section et est signalée.
     </div>
   </div>
 
@@ -182,21 +192,21 @@ tfoot td{font-weight:700;border-top:2px solid var(--g3);background:var(--g1)}
         <thead><tr>
           <th class="c"><input type="checkbox" id="selall" title="Tout sélectionner (filtré)"></th>
           <th>Code activité</th><th>Description</th><th>Grp</th>
-          <th class="r">Heures</th><th>Unité</th>
+          <th class="r">Heures</th><th class="r">Qté</th><th>Unité</th>
           <th class="r">Budget estimé</th><th class="r">Budget ajusté</th><th class="r">Écart</th>
           <th>No OTP (WBS)</th><th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
         <tfoot><tr>
           <td colspan="4">TOTAL</td>
-          <td class="r" id="f-h">0</td><td></td>
+          <td class="r" id="f-h">0</td><td class="r" id="f-q">—</td><td></td>
           <td class="r" id="f-est">0</td><td class="r" id="f-adj">0</td><td class="r" id="f-ec">0</td><td colspan="2"></td>
         </tr></tfoot>
       </table>
     </div>
     <p class="tip" id="fileout"></p>
   </div>
-  <div style="text-align:center;font-size:10.5px;color:var(--g4);padding:6px 0">Outil « Budget Maestro » · version 1.2 · Construction Gauthier</div>
+  <div style="text-align:center;font-size:10.5px;color:var(--g4);padding:6px 0">Outil « Budget Maestro » · version 1.3 · Construction Gauthier</div>
 </div>
 
 <script>
@@ -221,6 +231,41 @@ function num(s){ s=(s||'').toString().replace(/\s| /g,'').replace(',','.'); con
 const ACT_RE=/^(\d{2} \d{2} \d{2}(?:\.\d+)?)(?=$|[\s\-–—:])\s*[-–—:]?\s*(.*)$/;
 const BASE_RE=/^\d{2} \d{2} \d{2}/;
 const GROUPS=[['L',12],['M',13],['E',14],['S',15],['D',16]];
+const QTE=5, UNITE=6;
+const M2_EN_PICA=10.76391;
+
+/* ---------- relevés de quantités ----------
+   Un assemblage de relevé (« Cloison CD2 = … ») n'a pas de code MasterFormat.
+   Ses composants sont regroupés par famille et envoyés sur l'activité du DDN
+   qui leur correspond. La quantité portée est la SURFACE D'ASSEMBLAGE : les
+   trois corps de métier d'une même cloison partagent le même dénominateur
+   d'avancement, qui est celui que le chantier déclare sur le lot WBS.
+   L'ordre des familles compte : « L. Roche AFB (stud CH) » est de la laine,
+   pas du métal.                                             (décisions 28 oct) */
+const FAMILLES=[
+  {f:'LAINE',     re:/l\. ?roche|laine|rockboard|confortbatt|\bafb\b|cavity ?rock/i},
+  {f:'COUPE-FEU', re:/ruban.*coupe-?feu/i},
+  {f:'GYPSE',     re:/gypse|coin à gypse|plafond de gypse/i},
+  {f:'MÉTAL',     re:/\bstud\b|\blisse\b|résilient|sablière|fourrure/i},
+  {f:'COUPE-FEU', re:/coupe-?feu|cfs-|scellant/i},
+];
+const ORIG_EXT=/^06 10 53$|^07 21 13$/;      // assemblages de murs extérieurs
+const CODE_FAMILLE=(fam,orig)=>({
+  'GYPSE':'09 21 16.01', 'MÉTAL':'09 22 16.01', 'COUPE-FEU':'07 84 00.03',
+  'LAINE': ORIG_EXT.test(orig||'') ? '07 21 16.01' : '07 21 16.02',
+}[fam]||null);
+const NOM_DEFAUT={
+  '09 21 16.01':'Gypse - murs',
+  '09 21 16.02':'Gypse - plafonds',
+  '09 22 16.01':'Sablières',
+  '07 21 16.01':'Isolation en matelas des murs extérieurs',
+  '07 21 16.02':'Isolation en matelas des murs intérieurs',
+  '07 84 00.03':'Rubannage coupe-feu',
+};
+const famille=p=>{ for(const x of FAMILLES) if(x.re.test(p)) return x.f; return null; };
+const sansOrigine=p=>p.replace(/\s*\(\d{2} \d{2} \d{2}\)\s*$/,'').replace(/\s+/g,' ').trim();
+const ORIG_RE=/\((\d{2} \d{2} \d{2})\)\s*$/;
+const enPica=u=>{ u=(u||'').trim().toUpperCase(); return u==='PIED²'?1 : u==='M²'?M2_EN_PICA : 0; };
 const POSE=12, GT=17, TEMPS=18;
 
 // Lecture STRUCTURELLE de l'export, sans jamais deviner à partir du texte :
@@ -229,7 +274,8 @@ const POSE=12, GT=17, TEMPS=18;
 //   · colonne « Desc. produit » remplie          -> ligne de PRODUIT
 // Une feuille dont le nom ne commence pas par un code MasterFormat est rattachée
 // au code de sa section. Aucune ligne ne peut donc être absorbée en silence.
-function transform(rows){
+function transform(rows, ddn){
+  ddn=ddn||{};
   const acts=[]; const byCode=new Map(); const sections=[];
   // lignes de synthèse en bas de l'export : « Total », Administration, Taxes, TOTAL DE LA PHASE
   const synth={total:null,groupes:null,temps:null,admin:null,taxes:null,phase:null};
@@ -237,6 +283,13 @@ function transform(rows){
   let nProduits=0, heuresHorsPose=0;
   let sect=null, sc=null, cur=null, nFeuilles=0, nSansCode=0, nHorsSection=0;
   const horsSection=[];   // feuilles dont le code ne correspond pas à leur section
+  // --- v1.3 ---
+  let releve=false;            // la feuille courante est un relevé (nom libre, sans code MF)
+  const qOrig=new Map();       // section d'origine -> surface d'assemblage cumulée, en pi.ca
+  const uAsm=new Map();        // unités d'assemblage non convertibles, par section
+  const flux=new Map();        // 'origine→cible' -> {de, vers, fam, mt, n, deplace}
+  const sansFam=new Map();     // section -> {mt, n, ex:Set} : relevés sans famille reconnue
+  const nomCible=code=>((ddn[code]&&ddn[code].desc)||NOM_DEFAUT[code]||code);
 
   const activite=(code,nom)=>{
     let a=byCode.get(code);
@@ -267,9 +320,10 @@ function transform(rows){
     // Nouvelle section : la première ligne du bloc est l'en-tête de section.
     if(s!==sect){
       sect=s;
-      sc={code:s,nom:desc,feuilles:0,montant:0,temps:0,lignes:0};
+      sc={code:s,nom:desc,feuilles:0,montant:0,temps:0,lignes:0,rel:0,fdc:0,nRel:0};
       sections.push(sc);
       cur=activite(s,desc);          // défaut : les produits sans feuille vont sur la section
+      releve=false;
       if(!prod) continue;            // l'en-tête de section ne porte pas de montant
     }
 
@@ -277,40 +331,123 @@ function transform(rows){
     if(!prod){
       const m=ACT_RE.exec(desc);
       nFeuilles++; sc.feuilles++;
+      releve=!m;
       if(m){
         const code=m[1].trim();
         if(code.slice(0,8)!==sect) horsSection.push({code:code, nom:m[2].trim()||desc, sect:sect});
         cur=activite(code, m[2].trim()||desc);
       }
-      else { nSansCode++; cur=activite(sect, sc.nom); }
+      else {
+        nSansCode++; sc.nRel++; cur=activite(sect, sc.nom);
+        // Surface de l'assemblage. C'est elle qui sert de quantité, jamais la somme
+        // des quantités de composants : une cloison à 4 feuilles de gypse compterait
+        // quatre fois sa propre surface.
+        const q=num(row[QTE]), f=enPica(row[UNITE]);
+        if(q>0){
+          if(f) qOrig.set(sect,(qOrig.get(sect)||0)+q*f);
+          else { if(!uAsm.has(sect)) uAsm.set(sect,new Set()); uAsm.get(sect).add(((row[UNITE]||'?').trim())||'?'); }
+        }
+      }
       continue;
     }
 
     // Ligne de produit.
     if(!cur){ nHorsSection++; continue; }
     nProduits++; sc.lignes++;
+
+    // --- v1.3 : routage des composants de relevé vers l'activité de leur famille ---
+    // Une ligne est « de relevé » si elle est sous un assemblage sans code, ou si
+    // l'Estimateur Général l'a déjà ventilée vers une autre section — il marque
+    // alors le produit du code de sa section d'origine : « Stud 3-5/8 (09 21 16) ».
+    const mk=ORIG_RE.exec(prod);
+    const estRel=releve||!!mk;
+    const orig=mk?mk[1]:sect;
+    let act=cur, fam=null, cible=null;
+    if(estRel){
+      fam=famille(sansOrigine(prod));
+      cible=fam?CODE_FAMILLE(fam,orig):null;
+      if(cible) act=activite(cible, nomCible(cible));
+    }
+
     let mt=0;
-    for(const [g,col] of GROUPS){ const v=num(row[col]); cur[g]+=v; calc[g]+=v; mt+=v; }
-    sc.montant+=mt;
-    const t=num(row[TEMPS]); cur.temps+=t; calc.temps+=t; sc.temps+=t;
+    for(const [g,col] of GROUPS){ const v=num(row[col]); act[g]+=v; calc[g]+=v; mt+=v; }
+    sc.montant+=mt;                       // la section garde son total tel que lu (écran EG)
+    if(estRel) sc.rel+=mt; else sc.fdc+=mt;
+    const t=num(row[TEMPS]); act.temps+=t; calc.temps+=t; sc.temps+=t;
     if(t>0 && num(row[POSE])===0) heuresHorsPose+=t;
+
+    if(estRel){
+      const vers=cible||act.code;
+      const key=orig+'→'+vers;
+      const e=flux.get(key)||{de:orig,vers:vers,fam:fam||'—',mt:0,n:0,mtDepl:0};
+      e.mt+=mt; e.n++;
+      // montant que l'outil déplace lui-même d'une section à l'autre : l'Estimateur
+      // Général a déjà ventilé la plupart des composants, ceux-ci sont les autres.
+      if(vers.slice(0,8)!==sect) e.mtDepl+=mt;
+      flux.set(key,e);
+      if(!cible){
+        const z=sansFam.get(sect)||{mt:0,n:0,ex:new Set()};
+        z.mt+=mt; z.n++; if(z.ex.size<6) z.ex.add(sansOrigine(prod).slice(0,48)); sansFam.set(sect,z);
+      }
+    }
+  }
+
+  // Quantité par activité cible : la surface d'assemblage de sa ou ses sections
+  // d'origine, comptée une seule fois par couple (origine → cible). Les trois
+  // corps de métier d'une même cloison partagent donc le même dénominateur, qui
+  // est celui que le chantier déclare sur le lot WBS.
+  const qAct=new Map(), vus=new Map();
+  for(const e of flux.values()){
+    const q=qOrig.get(e.de)||0; if(!q) continue;
+    const s=vus.get(e.vers)||new Set(); if(s.has(e.de)) continue;
+    s.add(e.de); vus.set(e.vers,s);
+    qAct.set(e.vers, Math.round((qAct.get(e.vers)||0)+q));
   }
 
   const lines=[];
   let heuresPerdues=0;
+  const qSansPorteur=[];
   for(const a of acts){
     if(Math.round(a.L*100)/100===0 && a.temps>0) heuresPerdues+=a.temps;
-    for(const g of ['L','M','E','S','D']){
-      const montant=Math.round(a[g]*100)/100; if(montant===0)continue;
+    const grps=['L','M','E','S','D'].filter(g=>Math.round(a[g]*100)/100!==0);
+    const qte=qAct.get(a.code)||0;
+    // Les colonnes « Qté » de Maestro portent déjà les heures sur la ligne L :
+    // la quantité se pose donc sur UNE seule ligne non-L de l'activité.
+    const porteur=qte>0?(grps.find(g=>g!=='L')||null):null;
+    if(qte>0 && !porteur) qSansPorteur.push({code:a.code, q:qte});
+    for(const g of grps){
+      const montant=Math.round(a[g]*100)/100;
+      const estL=(g==='L'), portQ=(g===porteur);
+      const h=estL?Math.round(a.temps*100)/100:null;
+      const q=portQ?qte:null;
+      const k=estL?'HRE':(portQ?'pi.ca':'GLO');
       lines.push({code:a.code,nom:a.nom,grp:g,
-        i0:montant,i:montant,
-        h0:(g==='L'?Math.round(a.temps*100)/100:null),h:(g==='L'?Math.round(a.temps*100)/100:null),
-        k0:(g==='L'?'HRE':'GLO'),k:(g==='L'?'HRE':'GLO'),otp:''});
+        i0:montant,i:montant, h0:h,h:h, q0:q,q:q, k0:k,k:k, otp:''});
     }
   }
+
+  // Validation contre le dictionnaire des données — avertissement, jamais blocage :
+  // Maestro crée l'activité qu'on lui donne, qu'elle existe au DDN ou non.
+  const ddnKeys=Object.keys(ddn).length;
+  const inconnus=[], metriques=[];
+  if(ddnKeys){
+    const codes=new Set(lines.map(l=>l.code));
+    for(const c of codes) if(!ddn[c]) inconnus.push(c);
+    for(const [c,q] of qAct){
+      const e=ddn[c]||ddn[c.slice(0,8)]||null;
+      const m=e&&e.m?e.m.trim():'';
+      if(m && m.toLowerCase().replace(/[\s.]/g,'')!=='pica') metriques.push({code:c, m:m});
+    }
+  }
+
   calc.total=Math.round((calc.L+calc.M+calc.E+calc.S+calc.D)*100)/100;
   return {acts:acts.length, lines, synth, calc, nProduits, heuresHorsPose,
           sections, nFeuilles, nSansCode, nHorsSection, horsSection,
+          flux:[...flux.values()].sort((a,b)=>b.mt-a.mt),
+          sansFam:[...sansFam.entries()].map(([k,v])=>({sect:k,mt:v.mt,n:v.n,ex:[...v.ex]})).sort((a,b)=>b.mt-a.mt),
+          qAct:[...qAct.entries()].map(([k,v])=>({code:k,q:v})).sort((a,b)=>b.q-a.q),
+          uAsm:[...uAsm.entries()].map(([k,v])=>({sect:k,u:[...v]})),
+          qSansPorteur, inconnus, metriques, ddnKeys,
           heuresPerdues:Math.round(heuresPerdues*100)/100};
 }
 function lookupOtp(code, map){
@@ -333,6 +470,54 @@ function buildMapping(name, buf){
     if(!code||!otp)continue; if(/^(code|mf|activ|section)/i.test(code))continue; map[code]=otp; }
   return map;
 }
+// Lecture du dictionnaire des données Gauthier. On localise les colonnes par leur
+// entête (« Code », « Description », « Métrique ») ; à défaut on balaie chaque ligne
+// à la recherche d'un code MasterFormat et on prend la première cellule texte à sa
+// droite comme description. Le niveau (Division / Phase / Activité) est ignoré :
+// seuls les codes comptent, et une phase est un code valide pour Maestro.
+const DDN_CODE=/^\d{2} \d{2} \d{2}(?:\.\d+)?$/;
+function buildDDN(name, buf){
+  const out={}; const low=name.toLowerCase();
+  if(low.endsWith('.json')){
+    const d=JSON.parse(new TextDecoder('utf-8').decode(buf));
+    const arr=Array.isArray(d)?d:(d.items||d.ddn||[]);
+    arr.forEach(x=>{ const c=(x.code||'').toString().trim();
+      if(DDN_CODE.test(c)) out[c]={desc:(x.desc||x.description||'').toString().trim(), m:(x.metrique||x.m||'').toString().trim()}; });
+    return out;
+  }
+  let rows;
+  if(low.endsWith('.csv')){ const t=new TextDecoder('windows-1252').decode(buf); rows=parseCSV(t,';'); if(rows[0]&&rows[0].length<2) rows=parseCSV(t,','); }
+  else { const wb=XLSX.read(buf,{type:'array'}); rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1}); }
+  rows=rows||[];
+  const cell=(r,i)=>(r&&r[i]!=null?r[i]:'').toString().trim();
+  let ci=-1,di=-1,mi=-1;
+  for(let r=0;r<Math.min(rows.length,30);r++){
+    const row=rows[r]; if(!row)continue;
+    let c=-1,d=-1,m=-1;
+    for(let i=0;i<row.length;i++){ const v=cell(row,i).toLowerCase();
+      if(c<0 && /^code/.test(v)) c=i;
+      if(d<0 && /^desc/.test(v)) d=i;
+      if(m<0 && /^m[\u00e9e]tri/.test(v)) m=i; }
+    if(c>=0){ ci=c; di=d; mi=m; break; }
+  }
+  for(const row of rows){
+    if(!row)continue;
+    if(ci>=0){
+      const c=cell(row,ci); if(!DDN_CODE.test(c)) continue;
+      if(!out[c]) out[c]={desc:(di>=0?cell(row,di):''), m:(mi>=0?cell(row,mi):'')};
+      continue;
+    }
+    for(let i=0;i<row.length;i++){
+      const c=cell(row,i); if(!DDN_CODE.test(c)) continue;
+      let desc='';
+      for(let k=i+1;k<row.length;k++){ const w=cell(row,k); if(!w||DDN_CODE.test(w))continue; desc=w; break; }
+      if(!out[c]) out[c]={desc:desc, m:''};
+      break;
+    }
+  }
+  return out;
+}
+
 const HEADERS=['Code projet','Code activité','Description','Type activité','Préfixe','Groupe','Catégorie','Budget - Qté','Budget - Coûts','Budget - Revenus','Qté à réaliser - Unité','Qté à réaliser - Originale','Qté à réaliser - Modifiée','No OTP','CSST','Type suivi','DMSRB','Comptes - Matériaux','Comptes - Sous-traitants','Comptes - Divers','Comptes - Salaires','Comptes - Équipements','Comptes - Revenu','Modification Budget - Qté','Modification Budget - Coûts','Modification Budget - Revenus',"Disponible dans *MOBILE - Main-d'oeuvre",'Disponible dans *MOBILE - Équipement','Disponible dans *MOBILE - Matériel',"Disponible dans *MOBILE - Pourcentage d'avancement"];
 const GLABEL={L:'Salaire',M:'Matériaux',E:'Équipement',S:'Sous-traitants',D:'Divers'};
 
@@ -340,9 +525,19 @@ const GLABEL={L:'Salaire',M:'Matériaux',E:'Équipement',S:'Sous-traitants',D:'D
 const $=id=>document.getElementById(id);
 const money=v=>v.toLocaleString('fr-CA',{style:'currency',currency:'CAD',maximumFractionDigits:0});
 const money2=v=>v.toLocaleString('fr-CA',{minimumFractionDigits:2,maximumFractionDigits:2});
-let fileBuf=null, MAP={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0, GROUPBY='', COLLAPSED=new Set();
+let fileBuf=null, MAP={}, DDN={}, ORIG=[], ROWS=[], SEL=new Set(), idc=0, GROUPBY='', COLLAPSED=new Set();
 let DIAG=null;   // résultat de la réconciliation, conservé pour le téléchargement
 const DIVNAME={'01':'Conditions générales','02':'Démolition','03':'Béton','04':'Maçonnerie','05':'Métaux','06':'Bois & plastiques','07':'Étanchéité','08':'Portes & fenêtres','09':'Finitions','10':'Spécialités','11':'Équipements','12':'Ameublement','13':'Construction spéciale','14':'Transport vertical','21':'Protection incendie','22':'Plomberie','23':'CVCA','26':'Électricité','27':'Communications','28':'Sécurité','31':'Terrassement','32':'Aménagement ext.','33':'Réseaux','34':'Transport'};
+
+// L'outil est livré en deux fichiers : index.html et xlsx.full.min.js, dans le
+// MÊME dossier. Sans la librairie, ni la lecture des .xlsx ni l'écriture du
+// gabarit ne sont possibles : autant le dire tout de suite.
+if(typeof XLSX==='undefined'){
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="background:#FDE7E9;color:#A80000;border-bottom:1px solid #F3B7BC;padding:12px 16px;font-size:13px;line-height:1.6">'
+    +'<b>\u26d4 Fichier \u00ab xlsx.full.min.js \u00bb introuvable.</b> Il doit se trouver dans le <b>m\u00eame dossier</b> que ce fichier HTML. '
+    +'Sans lui, l\'outil ne peut ni lire un .xlsx ni produire le gabarit Maestro.</div>');
+}
 
 const drop=$('drop'), fileInput=$('file');
 drop.addEventListener('click',()=>fileInput.click());
@@ -351,6 +546,7 @@ drop.addEventListener('click',()=>fileInput.click());
 drop.addEventListener('drop',ev=>{ if(ev.dataTransfer.files[0]) loadFile(ev.dataTransfer.files[0]); });
 fileInput.addEventListener('change',ev=>{ if(ev.target.files[0]) loadFile(ev.target.files[0]); });
 $('mapfile').addEventListener('change',ev=>{ if(ev.target.files[0]) loadMap(ev.target.files[0]); });
+$('ddnfile').addEventListener('change',ev=>{ if(ev.target.files[0]) loadDDN(ev.target.files[0]); });
 $('projet').addEventListener('input',refreshBtn);
 $('filter').addEventListener('input',renderRows);
 $('grpfilter').addEventListener('change',renderRows);
@@ -369,6 +565,10 @@ $('expandAll').addEventListener('click',()=>{ COLLAPSED.clear(); renderRows(); }
 
 function loadFile(f){ $('fname').textContent='✓ '+f.name; const rd=new FileReader(); rd.onload=e=>{fileBuf=e.target.result;refreshBtn();}; rd.readAsArrayBuffer(f); }
 function loadMap(f){ const rd=new FileReader(); rd.onload=e=>{ try{ MAP=buildMapping(f.name,e.target.result); const n=Object.keys(MAP).length; $('mapinfo').innerHTML='✓ '+f.name+' — '+n+' correspondance(s) chargée(s).'; }catch(err){ MAP={}; $('mapinfo').innerHTML='⚠ Fichier de correspondance illisible : '+err.message; } }; rd.readAsArrayBuffer(f); }
+function loadDDN(f){ const rd=new FileReader(); rd.onload=e=>{ try{ DDN=buildDDN(f.name,e.target.result); const n=Object.keys(DDN).length;
+    if(!n) throw new Error('aucun code MasterFormat reconnu dans ce fichier');
+    $('ddninfo').innerHTML='\u2713 '+f.name+' \u2014 '+n+' code(s) au dictionnaire. Les activit\u00e9s absentes du DDN seront signal\u00e9es \u00e0 l\'\u00e9tape 4.';
+  }catch(err){ DDN={}; $('ddninfo').innerHTML='\u26a0 Dictionnaire illisible : '+err.message+'. L\'outil continue sans validation.'; } }; rd.readAsArrayBuffer(f); }
 function refreshBtn(){ $('go').disabled=!(fileBuf && $('projet').value.trim()); }
 function msg(t,c){ $('message').innerHTML='<div class="msg '+c+'">'+t+'</div>'; }
 
@@ -442,10 +642,44 @@ function renderRecon(d){
       +(d.horsSection.length>6?', …':'')+'. Faute de frappe dans l\'Estimateur Général, ou phase volontaire : à trancher avant l\'import.');
   }
   if(d.nSansCode>0){
-    alertes.push('ℹ <b>'+d.nSansCode+' feuille(s) sans code MasterFormat dans leur nom</b> '
-      +'(ex. « Mur ext type ME-1 = … »). Leur budget est rattaché au <b>code de leur section</b>, '
-      +'pas perdu. Développez le contrôle par section ci-dessous pour les situer.');
+    alertes.push('ℹ <b>'+d.nSansCode+' feuille(s) de relevé de quantités</b> (nom libre, sans code MasterFormat — '
+      +'ex. « Cloison CD2 = Ac Stud 3-5/8 + … »). Leurs composants sont <b>regroupés par famille</b> vers les '
+      +'activités du dictionnaire ; ceux dont la famille n\'est pas reconnue restent sur le code de leur section. '
+      +'Le détail est dans le panneau « Relevés de quantités » ci-dessous.');
   }
+  // 4b) contrôles propres aux relevés de quantités (v1.3)
+  if(d.sansFam && d.sansFam.length){
+    const t=d.sansFam.reduce((a,x)=>a+x.mt,0);
+    alertes.push('\u26a0 <b>'+money2(t)+' $ de relev\u00e9s sans famille reconnue</b> dans '
+      +d.sansFam.length+' section(s) \u2014 '+d.sansFam.slice(0,4).map(x=>'<code>'+x.sect+'</code> '+money2(x.mt)+' $').join(', ')
+      +(d.sansFam.length>4?', \u2026':'')+'. Ces montants <b>restent sur le code de leur section</b>, rien n\'est perdu. '
+      +'Exemples de produits : '+(d.sansFam[0].ex||[]).slice(0,2).map(x=>'\u00ab '+x.replace(/</g,'&lt;')+' \u00bb').join(', ')
+      +'. Si ces familles doivent \u00eatre regroup\u00e9es ailleurs, il faut les ajouter \u00e0 la table des familles.');
+  }
+  if(d.qSansPorteur && d.qSansPorteur.length){
+    alertes.push('\u26a0 <b>'+d.qSansPorteur.length+' activit\u00e9(s) avec une quantit\u00e9 mais aucune ligne non-salaire</b> pour la porter ('
+      +d.qSansPorteur.slice(0,4).map(x=>'<code>'+x.code+'</code>').join(', ')+') \u2014 la colonne Qt\u00e9 de la ligne L porte les heures, '
+      +'la quantit\u00e9 d\'ouvrage n\'a donc pas pu \u00eatre inscrite. \u00c0 saisir \u00e0 la main dans Maestro.');
+  }
+  if(d.uAsm && d.uAsm.length){
+    alertes.push('\u2139 <b>Assemblages mesur\u00e9s dans une unit\u00e9 non convertible</b> en pi.ca : '
+      +d.uAsm.slice(0,5).map(x=>'<code>'+x.sect+'</code> ('+x.u.join(', ')+')').join(', ')
+      +'. Leur surface n\'est pas report\u00e9e \u2014 quantit\u00e9 \u00e0 saisir \u00e0 la main.');
+  }
+  if(d.ddnKeys && d.inconnus && d.inconnus.length){
+    alertes.push('\u2139 <b>'+d.inconnus.length+' activit\u00e9(s) absente(s) du dictionnaire des donn\u00e9es</b> : '
+      +d.inconnus.slice(0,8).map(c=>'<code>'+c+'</code>').join(', ')+(d.inconnus.length>8?', \u2026':'')
+      +'. <b>Ce n\'est pas bloquant</b> \u2014 Maestro cr\u00e9era ces activit\u00e9s. Mais si elles doivent durer, ajoutez-les au DDN.');
+  }
+  if(d.metriques && d.metriques.length){
+    alertes.push('\u2139 <b>M\u00e9trique du DDN diff\u00e9rente de pi.ca</b> pour '
+      +d.metriques.slice(0,5).map(x=>'<code>'+x.code+'</code> ('+x.m+')').join(', ')
+      +'. L\'outil inscrit la surface d\'assemblage en pi.ca : v\u00e9rifiez l\'unit\u00e9 attendue avant l\'import.');
+  }
+  if(!d.ddnKeys){
+    alertes.push('\u2139 <b>Aucun dictionnaire des donn\u00e9es charg\u00e9</b> \u2014 les activit\u00e9s cr\u00e9\u00e9es par regroupement portent les noms par d\u00e9faut de l\'outil, et rien ne v\u00e9rifie qu\'elles existent au DDN.');
+  }
+
   if(alertes.length) h+='<div style="padding:10px 12px;background:var(--amber-lt);border-top:1px solid var(--amber-bd);font-size:12.5px;line-height:1.7;color:var(--amber)">'
     +alertes.join('<br>')+'</div>';
 
@@ -453,11 +687,12 @@ function renderRecon(d){
   if(d.sections && d.sections.length){
     h+='<details style="border-top:1px solid var(--g3)"><summary style="cursor:pointer;padding:9px 12px;font-size:12.5px;font-weight:600">'
       +'Contrôle par section — '+d.sections.length+' sections, '+d.nFeuilles+' feuilles, '+d.nProduits+' lignes de produit'
-      +' <span style="font-weight:400;color:var(--g4)">· comparez le nombre de feuilles avec « Feuilles trouvées » dans EG</span></summary>'
+      +' <span style="font-weight:400;color:var(--g4)">· les colonnes Relevés / Feuilles de calcul se comparent directement avec l\'écran de l\'Estimateur Général</span></summary>'
       +'<div style="max-height:320px;overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
       +'<tr style="position:sticky;top:0;background:var(--g1)"><th style="text-align:left;padding:5px 12px">Section</th>'
       +'<th style="text-align:left;padding:5px 8px">Nom</th><th style="text-align:right;padding:5px 8px">Feuilles</th>'
       +'<th style="text-align:right;padding:5px 8px">Lignes</th><th style="text-align:right;padding:5px 8px">Heures</th>'
+      +'<th style="text-align:right;padding:5px 8px">Relev\u00e9s</th><th style="text-align:right;padding:5px 8px">Feuilles de calcul</th>'
       +'<th style="text-align:right;padding:5px 12px">Montant</th></tr>';
     for(const sc of d.sections){
       const vide=sc.montant===0;
@@ -467,9 +702,52 @@ function renderRecon(d){
         +'<td style="padding:4px 8px;text-align:right">'+sc.feuilles+'</td>'
         +'<td style="padding:4px 8px;text-align:right">'+sc.lignes+'</td>'
         +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)">'+money2(sc.temps)+'</td>'
+        +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)'+(sc.rel?';color:var(--blue)':';color:var(--g4)')+'">'+(sc.rel?money2(sc.rel):'\u2014')+'</td>'
+        +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)">'+(sc.fdc?money2(sc.fdc):'\u2014')+'</td>'
         +'<td style="padding:4px 12px;text-align:right;font-family:var(--mono)">'+money2(sc.montant)+' $</td></tr>';
     }
     h+='</table></div></details>';
+  }
+
+  // 6) regroupement des relevés de quantités (v1.3)
+  if(d.flux && d.flux.length){
+    const totRel=d.flux.reduce((a,x)=>a+x.mt,0);
+    const totDepl=d.flux.reduce((a,x)=>a+x.mtDepl,0);
+    h+='<details style="border-top:1px solid var(--g3)"><summary style="cursor:pointer;padding:9px 12px;font-size:12.5px;font-weight:600">'
+      +'Relev\u00e9s de quantit\u00e9s \u2014 '+money2(totRel)+' $ regroup\u00e9s par famille'
+      +' <span style="font-weight:400;color:var(--g4)">\u00b7 dont '+money2(totDepl)+' $ d\u00e9plac\u00e9s d\'une section \u00e0 l\'autre par l\'outil</span></summary>'
+      +'<div style="padding:9px 12px;font-size:12px;color:var(--g5);line-height:1.6">'
+      +'L\'Estimateur G\u00e9n\u00e9ral ventile d\u00e9j\u00e0 la plupart des composants : il les remet \u00e0 z\u00e9ro dans la section '
+      +'de l\'assemblage et les r\u00e9\u00e9met dans la section de destination, marqu\u00e9s du code d\'origine. '
+      +'L\'outil fait deux choses de plus : il <b>pose ces lignes sur l\'activit\u00e9 du DDN</b> correspondant \u00e0 leur famille '
+      +'(au lieu du code nu de la section), et il <b>d\u00e9place celles que l\'EG a laiss\u00e9es sur place</b>.</div>'
+      +'<div style="max-height:300px;overflow:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<tr style="position:sticky;top:0;background:var(--g1)"><th style="text-align:left;padding:5px 12px">Assemblage d\'origine</th>'
+      +'<th style="text-align:left;padding:5px 8px">Famille</th><th style="text-align:left;padding:5px 8px">Activit\u00e9 de destination</th>'
+      +'<th style="text-align:right;padding:5px 8px">Lignes</th><th style="text-align:right;padding:5px 8px">Montant</th>'
+      +'<th style="text-align:right;padding:5px 8px">Dont d\u00e9plac\u00e9</th><th style="text-align:right;padding:5px 12px">Qt\u00e9 port\u00e9e</th></tr>';
+    const qm={}; (d.qAct||[]).forEach(x=>qm[x.code]=x.q);
+    const dejaQ={};
+    for(const e of d.flux){
+      if(Math.abs(e.mt)<0.005) continue;
+      const q=(!dejaQ[e.vers] && qm[e.vers])?qm[e.vers]:0; if(q) dejaQ[e.vers]=1;
+      h+='<tr style="border-top:1px solid var(--g2)">'
+        +'<td style="padding:4px 12px;font-family:var(--mono)">'+e.de+'</td>'
+        +'<td style="padding:4px 8px">'+e.fam+'</td>'
+        +'<td style="padding:4px 8px;font-family:var(--mono)">'+e.vers+(e.vers===e.de?' <span style="font-family:var(--sans,inherit);color:var(--g4)">(inchang\u00e9)</span>':'')+'</td>'
+        +'<td style="padding:4px 8px;text-align:right">'+e.n+'</td>'
+        +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)">'+money2(e.mt)+' $</td>'
+        +'<td style="padding:4px 8px;text-align:right;font-family:var(--mono)'+(e.mtDepl?';color:var(--blue)':';color:var(--g4)')+'">'+(e.mtDepl?money2(e.mtDepl)+' $':'\u2014')+'</td>'
+        +'<td style="padding:4px 12px;text-align:right;font-family:var(--mono)">'+(q?Math.round(q).toLocaleString('fr-CA')+' pi.ca':'\u2014')+'</td></tr>';
+    }
+    h+='</table></div>'
+      +'<div style="padding:9px 12px;font-size:12px;color:var(--g5);line-height:1.6;border-top:1px solid var(--g2)">'
+      +'<b>La quantit\u00e9 port\u00e9e est la surface d\'assemblage</b>, jamais la somme des quantit\u00e9s de composants : '
+      +'une cloison \u00e0 quatre feuilles de gypse compterait sinon quatre fois sa propre surface. '
+      +'Les corps de m\u00e9tier d\'un m\u00eame assemblage re\u00e7oivent donc <b>le m\u00eame d\u00e9nominateur</b> \u2014 celui que le chantier '
+      +'d\u00e9clare sur le lot WBS. Elle s\'inscrit sur une seule ligne non-salaire par activit\u00e9, les colonnes Qt\u00e9 de la ligne L '
+      +'portant d\u00e9j\u00e0 les heures.</div>'
+      +'</details>';
   }
 
   h+='</div>';
@@ -479,7 +757,7 @@ function renderRecon(d){
 $('go').addEventListener('click',()=>{
   try{
     const text=new TextDecoder('windows-1252').decode(fileBuf);
-    const d=transform(parseCSV(text,';'));
+    const d=transform(parseCSV(text,';'), DDN);
     const {acts,lines}=d;
     if(!lines.length){ msg('⚠ Aucune activité avec budget trouvée. Vérifiez que c\'est bien l\'export « CSV détaillé » de l\'Estimateur Général.','err'); return; }
     lines.forEach(l=>{ l.id=idc++; l.otp=lookupOtp(l.code, MAP); });
@@ -501,13 +779,14 @@ function rowById(id){ return ROWS.find(r=>r.id===id); }
 function rowKey(r){ return GROUPBY==='section'?((r.code.match(BASE_RE)||[r.code])[0]):GROUPBY==='division'?r.code.slice(0,2):''; }
 function rowHTML(r){
   const ec=Math.round((r.i-r.i0)*100)/100;
-  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0);
+  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.q!==r.q0)||(r.k!==r.k0);
   return '<tr class="'+(SEL.has(r.id)?'selected ':'')+(edited?'edited':'')+'">'+
     '<td class="c"><input type="checkbox" class="selbox" data-id="'+r.id+'" '+(SEL.has(r.id)?'checked':'')+'></td>'+
     '<td class="ccode">'+r.code+'</td>'+
     '<td>'+r.nom+'</td>'+
     '<td><span class="badge">'+r.grp+'</span></td>'+
     '<td class="r">'+(r.grp==='L'?'<input class="cell-h" type="number" min="0" step="0.01" value="'+(r.h==null?0:r.h)+'" data-id="'+r.id+'" data-f="h">':'—')+'</td>'+
+    '<td class="r">'+(r.q!=null?'<input class="cell-q" type="number" min="0" step="0.01" value="'+r.q+'" data-id="'+r.id+'" data-f="q">':'—')+'</td>'+
     '<td><input class="cell-u" type="text" value="'+r.k+'" data-id="'+r.id+'" data-f="k"></td>'+
     '<td class="r" style="color:var(--g5)">'+money2(r.i0)+'</td>'+
     '<td class="r"><input class="cell-in" type="number" min="0" step="0.01" value="'+r.i+'" data-id="'+r.id+'" data-f="i"></td>'+
@@ -527,14 +806,14 @@ function renderRows(){
     groups.forEach((rows,k)=>{
       const sub=rows.reduce((s,r)=>s+r.i,0); const col=COLLAPSED.has(k);
       const label=GROUPBY==='division'?('Division '+k+(DIVNAME[k]?' — '+DIVNAME[k]:'')):k;
-      html+='<tr class="grouphdr" data-gk="'+k+'"><td colspan="11"><span class="gtog">'+(col?'▸':'▾')+'</span><b class="ccode">'+label+'</b><span class="gcnt">'+rows.length+' ligne(s)</span><span class="gsub">'+money2(sub)+' $</span></td></tr>';
+      html+='<tr class="grouphdr" data-gk="'+k+'"><td colspan="12"><span class="gtog">'+(col?'▸':'▾')+'</span><b class="ccode">'+label+'</b><span class="gcnt">'+rows.length+' ligne(s)</span><span class="gsub">'+money2(sub)+' $</span></td></tr>';
       if(!col) rows.forEach(r=>html+=rowHTML(r));
     });
   }
   $('tbody').innerHTML=html;
   const tb=$('tbody');
   tb.querySelectorAll('.grouphdr').forEach(h=>h.addEventListener('click',()=>{ const k=h.dataset.gk; if(COLLAPSED.has(k))COLLAPSED.delete(k);else COLLAPSED.add(k); renderRows(); }));
-  tb.querySelectorAll('input.cell-in,input.cell-h,input.cell-u,input.cell-o').forEach(inp=>inp.addEventListener('input',onEdit));
+  tb.querySelectorAll('input.cell-in,input.cell-h,input.cell-q,input.cell-u,input.cell-o').forEach(inp=>inp.addEventListener('input',onEdit));
   tb.querySelectorAll('.selbox').forEach(cb=>cb.addEventListener('change',()=>{ const id=+cb.dataset.id; if(cb.checked)SEL.add(id);else SEL.delete(id); cb.closest('tr').classList.toggle('selected',cb.checked); updateSelBar(); }));
   tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{ e.stopPropagation(); const id=+b.dataset.del; ROWS=ROWS.filter(r=>r.id!==id); SEL.delete(id); renderRows(); recompute(); updateSelBar(); }));
 }
@@ -545,8 +824,8 @@ function onEdit(e){
   const tr=e.target.closest('tr');
   if(f==='otp'){ e.target.classList.toggle('empty',!r.otp); recompute(); return; }
   recompute();
-  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.k!==r.k0); tr.classList.toggle('edited',edited);
-  if(f==='i'){ const ec=Math.round((r.i-r.i0)*100)/100; const cell=tr.children[8];
+  const edited=(r.i!==r.i0)||(r.h!==r.h0)||(r.q!==r.q0)||(r.k!==r.k0); tr.classList.toggle('edited',edited);
+  if(f==='i'){ const ec=Math.round((r.i-r.i0)*100)/100; const cell=tr.children[9];
     cell.textContent=ec===0?'':(ec>0?'+':'')+money2(ec); cell.className='r '+(ec>0?'delta-pos':ec<0?'delta-neg':''); }
 }
 function updateSelBar(){
@@ -588,12 +867,13 @@ function redistribute(){
   msg('✓ '+money2(drawn)+' $ redistribué(s) vers '+target.code+(removed?(' · '+removed+' ligne(s) vidée(s) retirée(s)'):'')+'. Total inchangé.','ok');
 }
 function recompute(){
-  let est=0,adj=0,hh=0; const byg={L:0,M:0,E:0,S:0,D:0};
-  ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; if(r.h)hh+=r.h; });
+  let est=0,adj=0,hh=0,nq=0; const byg={L:0,M:0,E:0,S:0,D:0};
+  ROWS.forEach(r=>{ est+=r.i0; adj+=r.i; byg[r.grp]+=r.i; if(r.h)hh+=r.h; if(r.q)nq++; });
   const ec=Math.round((adj-est)*100)/100;
   $('s-est').textContent=money(est); $('s-adj').textContent=money(adj); $('s-ec').textContent=(ec>0?'+':'')+money(ec);
   $('f-est').textContent=money2(est); $('f-adj').textContent=money2(adj); $('f-ec').textContent=(ec>0?'+':'')+money2(ec);
   $('f-h').textContent=hh.toLocaleString('fr-CA',{maximumFractionDigits:1})+' h';
+  $('f-q').textContent=nq?(nq+' ligne(s)'):'—';
   $('s-lines').textContent=ROWS.length;
   $('grpbar').innerHTML=['L','M','E','S','D'].map(g=>'<span class="grpchip">'+g+' '+GLABEL[g]+' : <b>'+money(byg[g])+'</b></span>').join('');
   const seen={}, witho={}; ROWS.forEach(r=>{ seen[r.code]=1; if(r.otp) witho[r.code]=1; });
@@ -616,7 +896,10 @@ $('dl').addEventListener('click',()=>{
   for(const r of ROWS){
     const row=new Array(30).fill('');
     row[0]=projet; row[1]=r.code; row[2]=r.nom; row[3]='Activité'; row[5]=r.grp;
+    // Colonnes « Qté » de Maestro : les heures sur la ligne L, la quantité
+    // d'ouvrage sur la ligne porteuse (une seule par activité).
     if(r.grp==='L'){ row[7]=r.h||0; row[11]=r.h||0; }
+    else if(r.q!=null && r.q!==0){ row[7]=Math.round(r.q*100)/100; row[11]=Math.round(r.q*100)/100; }
     row[8]=Math.round(r.i*100)/100; row[10]=r.k||''; row[13]=r.otp||'';
     aoa.push(row);
   }
