@@ -1,0 +1,22 @@
+Section;Description;Budget;Produit;Desc. produit;Quantité;Unité;Prix pose;Prix achat;Prix équip.;Prix SousT.;Divers;Total pose;Total achat;Total équip.;Total SousT.;Total divers;Grand total;Total temps
+09 21 16;Gypse et panneaux supports;;;;;;;;;;;;;;;;;
+09 21 16;Cloison TEST = Ac Stud 3-5/8 + Lisse + 2 Gypse 5/8;;;;1000,00;PIED²;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;Gypse 5/8'' Coupe-feu (F.C.);1000,00;PIED²;;;;;;1000,00;500,00;0,00;0,00;0,00;1500,00;50,00
+09 21 16;Gypse et panneaux supports;;;Vis a gypse 1-1/4;1500,00;MCX-Vis;;;;;;0,00;50,00;0,00;0,00;0,00;50,00;0,00
+09 21 16;Gypse et panneaux supports;;;Stud 3-5/8 C.20;800,00;PIED.L-Stud;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;Lisse 3 5/8''  C.20;100,00;PIED.L x1;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;L. Roche Rockboard 3 1/2'' x 16'' (inso + CF);1000,00;PIED²;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;Ruban à joints de gypse coupe-feu;4,00;ROUL-Tape;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;L. Roche Confortbatt 3-1/2 x 16'' (C-F);400,00;PIED²;;;;;;60,00;140,00;0,00;0,00;0,00;200,00;3,00
+09 21 16;09 21 16.02 Gypse - plafonds;;;;;;;;;;;;;;;;;
+09 21 16;Gypse et panneaux supports;;;Plafond de gypse;300,00;PIED²;;;;;;200,00;100,00;0,00;0,00;0,00;300,00;10,00
+09 22 16;Montants métalliques;;;;;;;;;;;;;;;;;
+09 22 16;Montants métalliques;;;Stud 3-5/8 C.20 (09 21 16);800,00;PIED.L-Stud;;;;;;300,00;200,00;0,00;0,00;0,00;500,00;15,00
+07 21 16;Isolant en matelas;;;;;;;;;;;;;;;;;
+07 21 16;Isolant en matelas;;;L. Roche Rockboard 3 1/2'' x 16'' (inso + CF) (09 21 16);1000,00;PIED²;;;;;;80,00;400,00;0,00;0,00;0,00;480,00;4,00
+07 84 00;Protection coupe-feu;;;;;;;;;;;;;;;;;
+07 84 00;Protection coupe-feu;;;Ruban à joints de gypse coupe-feu (09 21 16);4,00;ROUL-Tape;;;;;;20,00;30,00;0,00;0,00;0,00;50,00;1,00
+;Total;;;;;;;;;;;1660,00;1420,00;0,00;0,00;0,00;3080,00;83,00
+;;;;Administration;;;;;;;;;;;;;100,00;
+;;;;Taxes;;;;;;;;;;;;;200,00;
+;;;;Total de la phase;;;;;;;;;;;;;3380,00;
