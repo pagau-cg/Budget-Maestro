@@ -1,0 +1,10 @@
+# Normalisation des fichiers texte de l'outil. Le jeu d'essai est encodé en
+# windows-1252 comme l'export de l'Estimateur Général : git ne doit pas y
+# toucher. La librairie est signalée comme code tiers, pour qu'elle n'encombre
+# ni les diffs ni les statistiques de langage du dépôt.
+*.html   text eol=lf
+*.md     text eol=lf
+*.mjs    text eol=lf
+*.yml    text eol=lf
+*.csv    -text
+xlsx.full.min.js -diff linguist-vendored
